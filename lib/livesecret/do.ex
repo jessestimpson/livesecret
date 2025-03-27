@@ -3,6 +3,8 @@ defmodule LiveSecret.Do do
   alias Ecto.Adapters.FoundationDB
   alias EctoFoundationDB.Tenant
 
+  import Ecto.Query
+
   def list_tenants() do
     Tenant.list(Repo)
   end
@@ -29,14 +31,11 @@ defmodule LiveSecret.Do do
   end
 
   def get_expired_secrets(tenant, now) do
-    Repo.stream(Secret, prefix: tenant)
-    |> Stream.filter(fn %Secret{expires_at: at} ->
-      NaiveDateTime.before?(at, now)
-    end)
-    |> Stream.map(fn %Secret{id: id} ->
-      id
-    end)
-    |> Enum.to_list()
+    from(s in Secret,
+      where: s.expires_at > ^~N[0000-01-01 00:00:00] and s.expires_at < ^now,
+      select: s.id
+    )
+    |> Repo.all(prefix: tenant)
   end
 
   def delete_secret(tenant, id) do

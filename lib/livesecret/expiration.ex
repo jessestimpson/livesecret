@@ -11,7 +11,6 @@ defmodule LiveSecret.Expiration do
   def expire_all_tenants() do
     tenant_ids = Do.list_tenants()
     Enum.each(tenant_ids, &open_and_expire/1)
-    Logger.info("EXPIRATION all tenants finished")
   end
 
   def open_and_expire(tenant_id) do
@@ -50,8 +49,10 @@ defmodule LiveSecret.Expiration do
 
     count_after = LiveSecret.Do.count_secrets(tenant)
 
-    Logger.info(
-      "EXPIRATION before #{inspect(now)} #{length(deleted)} deleted, #{count_after} remain"
-    )
+    if length(deleted) > 0 or count_after > 0,
+      do:
+        Logger.info(
+          "EXPIRATION before #{inspect(now)} #{length(deleted)} deleted, #{count_after} remain"
+        )
   end
 end

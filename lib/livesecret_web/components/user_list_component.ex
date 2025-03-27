@@ -72,7 +72,7 @@ defmodule LiveSecretWeb.UserListComponent do
                     </div>
                   </div>
                 </div>
-                <.badge
+                <.user_badge
                   self={@self}
                   live_action={@live_action}
                   active_user={active_user}
@@ -177,50 +177,56 @@ defmodule LiveSecretWeb.UserListComponent do
   5. Managing:
       au.live_action: admin
   """
-  def badge(assigns) do
+  def user_badge(assigns) do
     ~H"""
     <div class="inline-flex sm:block justify-center items-center pt-4 sm:p-0 w-full sm:w-fit">
-      <% class =
-        "inline-flex items-center rounded-full border border-gray-300 bg-white px-2.5 py-0.5 text-sm font-medium leading-5 text-gray-700 shadow-sm hover:bg-gray-50" %>
       <%= case {@active_user.live_action, @active_user.state, ActiveUser.connected?(@active_user)} do %>
         <% {:receiver, :locked, true} -> %>
           <% enabled = not (@force_disable or @live_action != :admin) %>
-          <button
-            type="button"
-            disabled={not enabled}
-            class={class}
-            phx-click={if enabled and @live_action == :admin, do: "unlock", else: ""}
-            phx-value-id={@active_user.id}
-          >
-            <.badge_icon id={:lock} />
-            <%= if @active_user.id == @self do %>
-              Waiting...
-            <% else %>
-              Locked
-            <% end %>
-          </button>
+          <.badge
+            enabled={enabled}
+            icon={:lock}
+            phx_click={if enabled and @live_action == :admin, do: "unlock", else: ""}
+            phx_value_id={@active_user.id}
+            text={if @active_user.id == @self, do: "Waiting...", else: "Locked"}
+          />
         <% {:receiver, :locked, false} -> %>
-          <button type="button" disabled={true} class={class}>
-            <.badge_icon id={:shield} /> Left
-          </button>
+          <.badge enabled={false} icon={:shield} text="Left" />
         <% {:receiver, :unlocked, _} -> %>
-          <button type="button" disabled={true} class={class}>
-            <.badge_icon id={:unlock} /> Unlocked
-          </button>
+          <.badge enabled={false} icon={:unlock} text="Unlocked" />
         <% {:receiver, :revealed, _} -> %>
-          <button type="button" disabled={true} class={class}>
-            <.badge_icon id={:bolt} /> Revealed
-          </button>
+          <.badge enabled={false} icon={:bolt} text="Revealed" />
         <% {:admin, _, true} -> %>
-          <button type="button" disabled={true} class={class}>
-            <.badge_icon id={:beaker} /> Managing
-          </button>
+          <.badge enabled={false} icon={:beaker} text="Managing" />
         <% {:admin, _, false} -> %>
-          <button type="button" disabled={true} class={class}>
-            <.badge_icon id={:bolt} /> Revealed
-          </button>
+          <.badge enabled={false} icon={:bolt} text="Revealed" />
       <% end %>
     </div>
+    """
+  end
+
+  attr :enabled, :boolean, default: true
+  attr :phx_click, :string, default: nil
+  attr :phx_value_id, :string, default: nil
+  attr :icon, :atom
+  attr :text, :string, required: true
+  attr :class, :string, default: "border border-gray-300 shadow-sm hover:bg-gray-50"
+
+  def badge(assigns) do
+    ~H"""
+    <button
+      type="button"
+      disabled={not @enabled}
+      class={[
+        "inline-flex items-center rounded-full bg-white px-2.5 py-0.5 text-sm font-sm leading-5 text-gray-700",
+        @class
+      ]}
+      phx-click={@phx_click}
+      phx-value-id={@phx_value_id}
+    >
+      <.badge_icon id={@icon} />
+      {@text}
+    </button>
     """
   end
 

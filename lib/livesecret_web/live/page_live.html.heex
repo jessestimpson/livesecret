@@ -19,15 +19,11 @@
           live?={@secret.live?}
         />
 
-        <%= case @special_action do %>
-          <% :decrypting -> %>
-            <PageComponents.decrypt_modal
-              :if={@self_burned? or not is_nil(@secret.content)}
-              secret={@secret}
-              changeset={Secret.changeset(@secret, %{})}
-            />
-          <% _ -> %>
-        <% end %>
+        <PageComponents.decrypt_modal
+          :if={@special_action == :decrypting and (@self_burned? or not is_nil(@secret.content))}
+          secret={@secret}
+          changeset={Secret.changeset(@secret, %{})}
+        />
 
         <%= case @live_action do %>
           <% :create -> %>
@@ -42,37 +38,27 @@
               ,
               durations={Presecret.supported_durations()}
             />
-            <PageComponents.section_header>Help</PageComponents.section_header>
+            <PageComponents.section_header>
+              <:title>Help</:title>
+            </PageComponents.section_header>
             <PageComponents.help live_action={@live_action} />
           <% :admin -> %>
+            <% user = if is_nil(@current_user), do: nil, else: @users[@current_user.id] %>
             <PageComponents.secret_links
               live_action={@live_action}
               to={~p"/secret/#{@secret.id}"}
               enabled={is_nil(@secret.burned_at)}
             />
 
-            <PageComponents.section_header>Online now</PageComponents.section_header>
-            <LiveSecretWeb.UserListComponent.view
-              :if={not is_nil(@current_user)}
-              self={@current_user.id}
-              live_action={@live_action}
-              users={@users}
-              burned_at={@secret.burned_at}
-            />
-
-            <PageComponents.section_header>Actions</PageComponents.section_header>
-            <PageComponents.action_panel burned_at={@secret.burned_at} live?={@secret.live?} />
-          <% :receiver -> %>
-            <% user = if is_nil(@current_user), do: nil, else: @users[@current_user.id] %>
-
-            <PageComponents.receiver_intro
+            <PageComponents.admin_instructions
               :if={not is_nil(user)}
-              user={user}
               burned_at={@secret.burned_at}
               live?={@secret.live?}
             />
 
-            <PageComponents.section_header>Online now</PageComponents.section_header>
+            <PageComponents.section_header>
+              <:title>Online now</:title>
+            </PageComponents.section_header>
             <LiveSecretWeb.UserListComponent.view
               :if={not is_nil(@current_user)}
               self={@current_user.id}
@@ -81,7 +67,36 @@
               burned_at={@secret.burned_at}
             />
 
-            <PageComponents.section_header>Help</PageComponents.section_header>
+            <PageComponents.section_header :if={is_nil(@secret.burned_at)}>
+              <:title>Actions</:title>
+            </PageComponents.section_header>
+            <PageComponents.action_panel
+              :if={is_nil(@secret.burned_at)}
+              burned_at={@secret.burned_at}
+              live?={@secret.live?}
+            />
+          <% :receiver -> %>
+            <% user = if is_nil(@current_user), do: nil, else: @users[@current_user.id] %>
+            <PageComponents.receiver_instructions
+              :if={not is_nil(user)}
+              user={user}
+              burned_at={@secret.burned_at}
+            />
+
+            <PageComponents.section_header>
+              <:title>Online now</:title>
+            </PageComponents.section_header>
+            <LiveSecretWeb.UserListComponent.view
+              :if={not is_nil(@current_user)}
+              self={@current_user.id}
+              live_action={@live_action}
+              users={@users}
+              burned_at={@secret.burned_at}
+            />
+
+            <PageComponents.section_header>
+              <:title>Help</:title>
+            </PageComponents.section_header>
             <PageComponents.help live_action={@live_action} />
         <% end %>
       </div>
