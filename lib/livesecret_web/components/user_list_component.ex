@@ -63,7 +63,7 @@ defmodule LiveSecretWeb.UserListComponent do
                           />
                         </svg>
                         <span class="truncate text-small">
-                          <.time_info active_user={active_user} />
+                          <.time_info active_user={active_user} live_action={@live_action} />
                         </span>
                       </p>
                     </div>
@@ -127,9 +127,23 @@ defmodule LiveSecretWeb.UserListComponent do
   def time_info(assigns) do
     ~H"""
     <%= if ActiveUser.connected?(@active_user) do %>
-      Joined: <time datetime={@active_user.joined_at}>{@active_user.joined_at}</time>
+      Joined:
+      <span
+        id={"time-info-#{@active_user.id}"}
+        phx-hook="ComputeTimestampAgo"
+        data-datetime={@active_user.joined_at}
+        data-format-for={@live_action}
+      >
+      </span>
     <% else %>
-      Left: <time datetime={@active_user.left_at}>{@active_user.left_at}</time>
+      Left:
+      <span
+        id={"time-info-#{@active_user.id}"}
+        phx-hook="ComputeTimestampAgo"
+        data-datetime={@active_user.left_at}
+        data-format-for={@live_action}
+      >
+      </span>
     <% end %>
     """
   end
@@ -193,9 +207,25 @@ defmodule LiveSecretWeb.UserListComponent do
         <% {:receiver, :locked, false} -> %>
           <.badge enabled={false} icon={:shield} text="Left" />
         <% {:receiver, :unlocked, true} -> %>
-          <.badge enabled={false} icon={:unlock} text={if @active_user.decrypt_failure_count > 0 and @live_action == :admin, do: "Unlocked (#{@active_user.decrypt_failure_count} failed attempts)", else: "Unlocked"} />
-          <% {:receiver, :unlocked, false} -> %>
-            <.badge enabled={false} icon={:unlock} text={if @active_user.decrypt_failure_count > 0 and @live_action == :admin, do: "Left (#{@active_user.decrypt_failure_count} failed attempts)", else: "Left"} />
+          <.badge
+            enabled={false}
+            icon={:unlock}
+            text={
+              if @active_user.decrypt_failure_count > 0 and @live_action == :admin,
+                do: "Unlocked (#{@active_user.decrypt_failure_count} failed attempts)",
+                else: "Unlocked"
+            }
+          />
+        <% {:receiver, :unlocked, false} -> %>
+          <.badge
+            enabled={false}
+            icon={:unlock}
+            text={
+              if @active_user.decrypt_failure_count > 0 and @live_action == :admin,
+                do: "Left (#{@active_user.decrypt_failure_count} failed attempts)",
+                else: "Left"
+            }
+          />
         <% {:receiver, :revealed, _} -> %>
           <.badge enabled={false} icon={:bolt} text="Revealed" />
         <% {:admin, _, true} -> %>

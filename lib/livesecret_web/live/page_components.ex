@@ -70,7 +70,12 @@ defmodule LiveSecretWeb.PageComponents do
         <:title>Please wait</:title>
         <:description>The <strong>Admin</strong> must unlock your page</:description>
       </.instructions_card>
-      <.instructions_card :if={@type == :do_decrypt} color={:yellow} id="decrypt-instructions" class="hidden">
+      <.instructions_card
+        :if={@type == :do_decrypt}
+        color={:yellow}
+        id="decrypt-instructions"
+        class="hidden"
+      >
         <:icon>👉</:icon>
         <:title>Ready</:title>
         <:description>
@@ -93,7 +98,8 @@ defmodule LiveSecretWeb.PageComponents do
         <:icon>🤝</:icon>
         <:title>Live Mode</:title>
         <:description>
-          When the intended <strong>Recipient</strong> comes online, press
+          When the intended <strong>Recipient</strong>
+          comes online, press
           <LiveSecretWeb.UserListComponent.badge enabled={false} icon={:lock} text="Locked" class="" />
         </:description>
       </.instructions_card>
@@ -118,14 +124,17 @@ defmodule LiveSecretWeb.PageComponents do
 
   def instructions_card(assigns) do
     ~H"""
-    <div id={@id} class={[
-      "rounded-md p-4",
-      @class,
-      case @color do
-        :blue -> "bg-blue-50"
-        :yellow -> "bg-yellow-50"
-      end
-    ]}>
+    <div
+      id={@id}
+      class={[
+        "rounded-md p-4",
+        @class,
+        case @color do
+          :blue -> "bg-blue-50"
+          :yellow -> "bg-yellow-50"
+        end
+      ]}
+    >
       <div class="flex">
         <div class="flex-shrink-0">{render_slot(@icon)}</div>
         <div class="ml-3">
