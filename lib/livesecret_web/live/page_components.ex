@@ -11,6 +11,8 @@ defmodule LiveSecretWeb.PageComponents do
     <%= case {not is_nil(@burned_at), @user.state} do %>
       <% {false, :locked} -> %>
         <.instructions type={:wait_for_unlock} />
+      <% {false, :unlocked} -> %>
+        <.instructions type={:do_decrypt} />
       <% {true, _} -> %>
         <.instructions type={:done} />
       <% _ -> %>
@@ -43,94 +45,109 @@ defmodule LiveSecretWeb.PageComponents do
     # <% {true, _} -> %>
     ~H"""
     <div class="pt-8 px-8 pb-2 w-full flex justify-center items-center align-center text-gray-700">
-      <div :if={@type == :wait_for_unlock} class="rounded-md bg-yellow-50 p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <!-- Heroicon name: mini/exclamation-triangle -->
+      <.instructions_card :if={@type == :wait_for_unlock} color={:yellow}>
+        <:icon>
+          <div role="status" class="pl-2">
             <svg
-              class="h-5 w-5 text-yellow-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
               aria-hidden="true"
+              class="mr-2 w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-gray-800"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                fill-rule="evenodd"
-                d="M8.485 3.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 3.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                clip-rule="evenodd"
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"
+              />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"
               />
             </svg>
+            <span class="sr-only">Loading...</span>
           </div>
-          <div class="ml-3">
-            <div class="flex">
-              <h3 class="text-sm font-medium text-yellow-800">Please wait</h3>
-              <div role="status" class="pl-2">
-                <svg
-                  aria-hidden="true"
-                  class="mr-2 w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-gray-800"
-                  viewBox="0 0 100 101"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                    fill="currentFill"
-                  />
-                </svg>
-                <span class="sr-only">Loading...</span>
-              </div>
-            </div>
-            <div class="mt-2 text-sm text-yellow-700">
-              <p>The creator of the secret link must unlock your page.</p>
-            </div>
+        </:icon>
+        <:title>Please wait</:title>
+        <:description>The <strong>Admin</strong> must unlock your page</:description>
+      </.instructions_card>
+      <.instructions_card :if={@type == :do_decrypt} color={:yellow} id="decrypt-instructions" class="hidden">
+        <:icon>👉</:icon>
+        <:title>Ready</:title>
+        <:description>
+          <button
+            type="button"
+            id="show-btn"
+            class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
+            phx-click={JS.show(to: "#decrypt-modal") |> JS.hide(to: "#decrypt-instructions")}
+          >
+            Receive secret
+          </button>
+        </:description>
+      </.instructions_card>
+      <.instructions_card :if={@type == :done} color={:blue}>
+        <:icon>👋</:icon>
+        <:title>Goodbye</:title>
+        <:description>We're all done here. Please close this window.</:description>
+      </.instructions_card>
+      <.instructions_card :if={@type == :do_unlock} color={:yellow}>
+        <:icon>🤝</:icon>
+        <:title>Live Mode</:title>
+        <:description>
+          When the intended <strong>Recipient</strong> comes online, click
+          <LiveSecretWeb.UserListComponent.badge enabled={false} icon={:lock} text="Locked" class="" />
+        </:description>
+      </.instructions_card>
+      <.instructions_card :if={@type == :do_nothing} color={:yellow}>
+        <:icon>🙌</:icon>
+        <:title>Async Mode</:title>
+        <:description>
+          When any <strong>Recipient</strong> comes online, each will be prompted for the passphrase
+        </:description>
+      </.instructions_card>
+    </div>
+    """
+  end
+
+  attr :id, :string, default: ""
+  attr :class, :string, default: ""
+  attr :color, :atom
+  slot :icon
+  slot :title
+  slot :status
+  slot :description
+
+  def instructions_card(assigns) do
+    ~H"""
+    <div id={@id} class={[
+      "rounded-md p-4",
+      @class,
+      case @color do
+        :blue -> "bg-blue-50"
+        :yellow -> "bg-yellow-50"
+      end
+    ]}>
+      <div class="flex">
+        <div class="flex-shrink-0">{render_slot(@icon)}</div>
+        <div class="ml-3">
+          <div class="flex">
+            <h3 class={[
+              "text-base font-medium",
+              case @color do
+                :blue -> "text-blue-800"
+                :yellow -> "text-yellow-800"
+              end
+            ]}>
+              {render_slot(@title)}
+            </h3>
           </div>
-        </div>
-      </div>
-      <div :if={@type == :done} class="rounded-md bg-blue-50 p-4">
-        <div class="flex">
-          <div class="ml-3">
-            <div class="flex">
-              <h3 class="text-base font-medium text-blue-800">👋 Goodbye</h3>
-            </div>
-            <div class="mt-2 text-sm text-blue-700">
-              <p>We're all done here. Please close this window.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div :if={@type == :do_unlock} class="rounded-md bg-yellow-50 p-4">
-        <div class="flex">
-          <div class="ml-3">
-            <div class="flex">
-              <h3 class="text-base font-medium text-yellow-800">🤝 Live Mode</h3>
-            </div>
-            <div class="mt-2 text-sm text-yellow-700">
-              <p>
-                When the intended Recipient comes online, click
-                <LiveSecretWeb.UserListComponent.badge
-                  enabled={false}
-                  icon={:lock}
-                  text="Locked"
-                  class=""
-                />
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div :if={@type == :do_nothing} class="rounded-md bg-yellow-50 p-4">
-        <div class="flex">
-          <div class="ml-3">
-            <div class="flex">
-              <h3 class="text-base font-medium text-yellow-800">👌 Async Mode</h3>
-            </div>
-            <div class="mt-2 text-sm text-yellow-700">
-              <p>When any Recipient comes online, each will be prompted for the passphrase</p>
-            </div>
+          <div class={[
+            "mt-2 text-sm",
+            case @color do
+              :blue -> "text-blue-700"
+              :yellow -> "text-yellow-700"
+            end
+          ]}>
+            <p>{render_slot(@description)}</p>
           </div>
         </div>
       </div>
@@ -454,7 +471,7 @@ defmodule LiveSecretWeb.PageComponents do
                 </div>
               </div>
               <div id="successmessage" class="mt-3 text-center sm:mt-5 hidden" phx-update="ignore">
-                <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">
                   Success!
                 </h3>
                 <div class="mt-2">
@@ -479,7 +496,7 @@ defmodule LiveSecretWeb.PageComponents do
                 value={if is_nil(@secret.iv), do: nil, else: :base64.encode(@secret.iv)}
               />
             </div>
-            <div id="decryptionfailure-div-for-ignore" phx-update="ignore">
+            <div id="decryptionfailure-div-for-ignore">
               <div id="decryptionfailure-container" class="hidden text-center pt-1">
                 <div class="inline-flex">
                   <div class="block pr-2">
@@ -488,6 +505,7 @@ defmodule LiveSecretWeb.PageComponents do
                   <span
                     class="hidden inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
                     id="fail-counter"
+                    phx-hook="OnIncorrectPassphrase"
                   >
                     0
                   </span>
@@ -534,7 +552,7 @@ defmodule LiveSecretWeb.PageComponents do
                 type="button"
                 id="close-btn"
                 class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
-                phx-click={JS.hide(to: "#decrypt-modal")}
+                phx-click={JS.hide(to: "#decrypt-modal") |> JS.show(to: "#decrypt-instructions")}
               >
                 Close
               </button>
