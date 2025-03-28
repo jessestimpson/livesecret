@@ -93,7 +93,7 @@ defmodule LiveSecretWeb.PageComponents do
         <:icon>🤝</:icon>
         <:title>Live Mode</:title>
         <:description>
-          When the intended <strong>Recipient</strong> comes online, click
+          When the intended <strong>Recipient</strong> comes online, press
           <LiveSecretWeb.UserListComponent.badge enabled={false} icon={:lock} text="Locked" class="" />
         </:description>
       </.instructions_card>
@@ -101,7 +101,7 @@ defmodule LiveSecretWeb.PageComponents do
         <:icon>🙌</:icon>
         <:title>Async Mode</:title>
         <:description>
-          When any <strong>Recipient</strong> comes online, each will be prompted for the passphrase
+          When any <strong>Recipient</strong> comes online, they will be prompted for the passphrase
         </:description>
       </.instructions_card>
     </div>
@@ -456,7 +456,7 @@ defmodule LiveSecretWeb.PageComponents do
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
-                    Paste the passphrase into this box and click 'Decrypt'. The secret content will be shown if the passphrase is correct.
+                    Paste the passphrase into this box and press 'Decrypt'. The secret content will be shown if the passphrase is correct.
                   </p>
                 </div>
                 <div class="pt-2" phx-update="ignore" id="passphrase-div-for-ignore">
@@ -467,6 +467,7 @@ defmodule LiveSecretWeb.PageComponents do
                     class="block w-full rounded-full border-gray-300 px-4 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     placeholder="Passphrase"
                     autocomplete="off"
+                    phx-hook="SubmitDecrypt"
                   />
                 </div>
               </div>
@@ -590,7 +591,7 @@ defmodule LiveSecretWeb.PageComponents do
           <ol type="1" class="list-decimal ml-8">
             <li class="pt-1 mt-1 text-sm text-gray-500">Enter secret data into the box above.</li>
             <li class="pt-1 mt-1 text-sm text-gray-500">
-              Click Encrypt. The data is encrypted locally, and stored on the server. The passphrase is not.
+              Press Encrypt. The data is encrypted locally before being sent to the server. The passphrase stays with you.
             </li>
             <li class="pt-1 mt-1 text-sm text-gray-500">
               You send the provided instructions to the recipient out-of-band.
@@ -606,7 +607,7 @@ defmodule LiveSecretWeb.PageComponents do
         <h3 class="text-sm font-medium text-gray-900">Can I learn more?</h3>
       </div>
       <p class="pt-1 mt-1 text-sm text-gray-500">
-        Please see the
+        More details at the
         <a class="underline" href="https://github.com/JesseStimpson/livesecret">LiveSecret</a>
         GitHub project.
       </p>

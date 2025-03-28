@@ -192,14 +192,16 @@ defmodule LiveSecretWeb.UserListComponent do
           />
         <% {:receiver, :locked, false} -> %>
           <.badge enabled={false} icon={:shield} text="Left" />
-        <% {:receiver, :unlocked, _} -> %>
-          <.badge enabled={false} icon={:unlock} text="Unlocked" />
+        <% {:receiver, :unlocked, true} -> %>
+          <.badge enabled={false} icon={:unlock} text={if @active_user.decrypt_failure_count > 0 and @live_action == :admin, do: "Unlocked (#{@active_user.decrypt_failure_count} failed attempts)", else: "Unlocked"} />
+          <% {:receiver, :unlocked, false} -> %>
+            <.badge enabled={false} icon={:unlock} text={if @active_user.decrypt_failure_count > 0 and @live_action == :admin, do: "Left (#{@active_user.decrypt_failure_count} failed attempts)", else: "Left"} />
         <% {:receiver, :revealed, _} -> %>
           <.badge enabled={false} icon={:bolt} text="Revealed" />
         <% {:admin, _, true} -> %>
           <.badge enabled={false} icon={:beaker} text="Managing" />
         <% {:admin, _, false} -> %>
-          <.badge enabled={false} icon={:bolt} text="Revealed" />
+          <.badge enabled={false} icon={:beaker} text="Left" />
       <% end %>
     </div>
     """

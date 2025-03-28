@@ -153,4 +153,20 @@ defmodule LiveSecretWeb.Presence do
 
     true
   end
+
+  @doc """
+  Notifies listeners that a user has failed to decrypt a secret
+
+  Must be called from the process that manages the user that is unlocked for decryption.
+
+  Returns true if successful
+  """
+  def on_decrypt_failure(id, for_user, count) do
+    LiveSecretWeb.Presence.update(self(), Secret.topic(id), for_user.id, %ActiveUser{
+      for_user
+      | decrypt_failure_count: count
+    })
+
+    true
+  end
 end

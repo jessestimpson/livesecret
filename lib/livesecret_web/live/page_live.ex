@@ -147,6 +147,19 @@ defmodule LiveSecretWeb.PageLive do
     {:noreply, socket |> assign(self_burned?: true)}
   end
 
+  def handle_event("decrypt_failure", %{"count" => count}, socket) do
+    %{
+      assigns: %{
+        secret: secret,
+        current_user: current_user,
+        users: users
+      }
+    } = socket
+
+    LiveSecretWeb.Presence.on_decrypt_failure(secret.id, users[current_user.id], count)
+    {:noreply, socket}
+  end
+
   @impl true
   # Handle the push_patch after secret creation. We use a patch so that the DOM doesn't get
   # reset. This allows the client browser to hold onto the passphrase so the instructions
@@ -308,13 +321,14 @@ defmodule LiveSecretWeb.PageLive do
       when not is_nil(user) do
     %{assigns: %{secret: secret, live_action: live_action}} = socket
 
-    active_user = %ActiveUser{
-      id: user[:id],
-      name: user[:name],
-      live_action: live_action,
-      joined_at: NaiveDateTime.utc_now(),
-      state: if(secret.live?, do: :locked, else: :unlocked)
-    }
+    active_user =
+      ActiveUser.new(
+        user[:id],
+        user[:name],
+        live_action,
+        NaiveDateTime.utc_now(),
+        if(secret.live?, do: :locked, else: :unlocked)
+      )
 
     special_action =
       case {live_action, active_user.state} do
