@@ -30,12 +30,11 @@ defmodule LiveSecret.Do do
     )
   end
 
-  def get_expired_secrets(tenant, now) do
+  def delete_secrets_expiring_before(tenant, now) do
     from(s in Secret,
-      where: s.expires_at > ^~N[0000-01-01 00:00:00] and s.expires_at < ^now,
-      select: s.id
+      where: s.expires_at > ^~N[0000-01-01 00:00:00] and s.expires_at < ^now
     )
-    |> Repo.all(prefix: tenant)
+    |> Repo.delete_all(prefix: tenant)
   end
 
   def delete_secret(tenant, id) do

@@ -73,7 +73,10 @@ if config_env() == :prod do
         cache_memory: System.get_env("FDBSERVER_CACHE_MEMORY") || nil,
         fdbservers: [[port: 4500]]
       ],
-      fdbcli: if(node_idx == 0, do: ~w[configure new single ssd-redwood-1]),
+      fdbcli:
+        if(node_idx == 0,
+          do: ~w[configure new single #{System.get_env("FDB_STORAGE_ENGINE") || "ssd-redwood-1"}]
+        ),
       fdbcli: if(node_idx == 2, do: ~w[configure double]),
       fdbcli: if(node_idx == node_count - 1, do: ~w[coordinators auto])
     ]

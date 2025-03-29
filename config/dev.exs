@@ -14,8 +14,6 @@ config :ex_fdbmonitor,
     conf: [
       data_dir: ".livesecret/dev/fdb/data",
       log_dir: ".livesecret/dev/fdb/log",
-      memory: "2GiB",
-      cache_memory: "1GiB",
       fdbservers: [
         [port: 5000]
       ]
