@@ -24,6 +24,7 @@ defmodule LiveSecretWeb.PageLive do
         {:ok,
          socket
          |> assign(:page_title, "Managing Secret")
+         |> assign(:changeset, Secret.managing_changeset(secret))
          |> assign(:special_action, nil)
          |> assign(:self_burned?, false)
          |> detect_presence()}
@@ -72,17 +73,37 @@ defmodule LiveSecretWeb.PageLive do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
+  def handle_event("do_update", %{"secret" => attrs}, socket) do
+    %{assigns: assigns = %{secret: secret}} = socket
+
+    case assigns do
+      %{do_update_tref: tref} ->
+        :timer.cancel(tref)
+
+      _ ->
+        :ok
+    end
+
+    {:ok, tref} =
+      :timer.apply_after(1000, fn ->
+        changeset = Secret.managing_changeset(secret, attrs)
+        LiveSecret.update!(changeset)
+      end)
+
+    {:noreply, socket |> assign(:do_update_tref, tref)}
+  end
+
   # Submit form data for secret creation
   def handle_event("create", %{"presecret" => attrs}, socket) do
     %{assigns: %{tenant: tenant}} = socket
-    %Secret{id: id, creator_key: creator_key} = LiveSecret.insert!(tenant, attrs)
+    secret = %Secret{id: id, creator_key: creator_key} = LiveSecret.insert!(tenant, attrs)
 
     case assign_secret_or_redirect(socket, id) do
       {:ok, socket} ->
         {:noreply,
          socket
-         |> assign(:changeset, nil)
          |> assign(:page_title, "Managing Secret")
+         |> assign(:changeset, Secret.managing_changeset(secret))
          |> push_patch(to: ~p"/admin/#{id}?key=#{creator_key}")}
 
       {_error, socket} ->

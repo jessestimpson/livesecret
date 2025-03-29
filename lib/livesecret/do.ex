@@ -81,6 +81,10 @@ defmodule LiveSecret.Do do
     |> Repo.insert!()
   end
 
+  def update!(changeset) do
+    Repo.update!(changeset)
+  end
+
   @doc """
   Returns a changeset with validated fields (or not) from Presecret attrs
   """

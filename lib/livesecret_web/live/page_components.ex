@@ -165,7 +165,7 @@ defmodule LiveSecretWeb.PageComponents do
   end
 
   # Rendered for live_action = :create | :admin so that the passphrase can be held in the DOM
-  def secret_links(assigns) do
+  def secret_mgmt(assigns) do
     ~H"""
     <% container_class = if @live_action == :create, do: "", else: "pt-8 px-8 pb-2" %>
     <div class={container_class}>
@@ -177,10 +177,31 @@ defmodule LiveSecretWeb.PageComponents do
           <% port = url[:port] || 4000 %>
           <% oob_url = build_external_url(scheme, host, port, @to) %>
 
-          <div class="w-full flex justify-center items-center align-center">
+          <div class="grid grid-cols-1 grid-rows-1 w-full flex justify-center items-center align-center">
+            <!--<span id="secret-label-span" class="hidden col-start-1 row-start-1 justify-self-start text-base font-medium text-gray-900">{@secret.label}</span> -->
+            <.form
+              :let={f}
+              for={@changeset}
+              action="#"
+              id="secret-form"
+              class="col-start-1 row-start-1 justify-self-end"
+              phx-change="do_update"
+              phx-submit="do_update"
+              autocomplete="off"
+            >
+            <input
+              phx-feedback-for="label"
+              type="text"
+              name={f[:label].name}
+              class="text-sm text-right font-medium text-gray-900 border-0 rounded-md focus:ring-blue-500 focus:placeholder:text-transparent"
+              id="secret-label-input"
+              value={Phoenix.HTML.Form.normalize_value("text", f[:label].value)}
+              placeholder="Label"
+            />
+            </.form>
             <button
               type="button"
-              class={"text-blue-700 bg-blue-100 hover:bg-blue-200 focus:ring-blue-500 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm "<> if @enabled, do: "", else: "line-through"}
+              class={"col-start-1 row-start-1 justify-self-center text-blue-700 bg-blue-100 hover:bg-blue-200 focus:ring-blue-500 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm "<> if @enabled, do: "", else: "line-through"}
               phx-click={JS.dispatch("live-secret:clipcopy-instructions")}
               disabled={not @enabled}
             >

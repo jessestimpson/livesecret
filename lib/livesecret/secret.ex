@@ -15,6 +15,7 @@ defmodule LiveSecret.Secret do
     field :live?, :boolean, default: true
     field :creator_key, :string, redact: true
     field :expires_at, :naive_datetime
+    field :label, :string
 
     timestamps()
   end
@@ -47,12 +48,18 @@ defmodule LiveSecret.Secret do
       :content,
       :iv,
       :live?,
+      :label,
       :burned_at,
       :expires_at
     ])
     |> Ecto.Changeset.validate_required([:creator_key, :live?, :expires_at])
     |> validate_content_size()
     |> validate_iv_size()
+  end
+
+  def managing_changeset(secret, attrs \\ %{}) do
+    secret
+    |> Ecto.Changeset.cast(attrs, [:label])
   end
 
   def validate_content_size(changeset) do

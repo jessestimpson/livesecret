@@ -13,6 +13,7 @@ defmodule LiveSecret do
   defdelegate get_secret!(tenant, id), to: Do
   defdelegate get_secret(tenant, id), to: Do
   defdelegate insert!(tenant, presecret_attrs), to: Do
+  defdelegate update!(changeset), to: Do
   defdelegate validate_presecret(tenant, presecret_attrs), to: Do
   defdelegate watch_secret(tenant, label, id), to: Do
   defdelegate burn!(secret), to: Do

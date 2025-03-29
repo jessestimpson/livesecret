@@ -27,8 +27,9 @@
 
         <%= case @live_action do %>
           <% :create -> %>
-            <PageComponents.secret_links
+            <PageComponents.secret_mgmt
               live_action={@live_action}
+              changeset={@changeset}
               to={~p"/secret/dne"}
               enabled={is_nil(@secret.burned_at)}
             />
@@ -44,8 +45,10 @@
             <PageComponents.help live_action={@live_action} />
           <% :admin -> %>
             <% user = if is_nil(@current_user), do: nil, else: @users[@current_user.id] %>
-            <PageComponents.secret_links
+            <PageComponents.secret_mgmt
               live_action={@live_action}
+              changeset={@changeset}
+              secret={@secret}
               to={~p"/secret/#{@secret.id}"}
               enabled={is_nil(@secret.burned_at)}
             />
