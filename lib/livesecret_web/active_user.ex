@@ -1,22 +1,23 @@
 defmodule LiveSecretWeb.ActiveUser do
-  use Ecto.Schema
+  defstruct id: nil,
+            name: nil,
+            live_action: nil,
+            joined_at: nil,
+            left_at: nil,
+            # :locked | :unlocked | :revealed
+            state: nil,
+            decrypt_failure_count: 0
 
-  alias LiveSecretWeb.ActiveUser
-
-  schema "active_users" do
-    field :name, :string
-    field :live_action, Ecto.Enum, values: [:admin, :receiver]
-    field :joined_at, :naive_datetime
-    field :left_at, :naive_datetime
-    field :state, Ecto.Enum, values: [:locked, :unlocked, :revealed]
+  def new(id, name, live_action, joined_at, state) do
+    %__MODULE__{
+      id: id,
+      name: name,
+      live_action: live_action,
+      joined_at: joined_at,
+      state: state
+    }
   end
 
-  def connected?(%ActiveUser{left_at: nil}), do: true
+  def connected?(%__MODULE__{left_at: nil}), do: true
   def connected?(_), do: false
-
-  def changeset(active_user, params) do
-    active_user
-    |> Ecto.Changeset.cast(params, [:live_action, :joined_at, :left_at])
-    |> Ecto.Changeset.validate_required([:live_action, :joined_at, :left_at])
-  end
 end

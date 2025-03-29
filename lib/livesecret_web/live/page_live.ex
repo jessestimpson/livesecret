@@ -24,6 +24,7 @@ defmodule LiveSecretWeb.PageLive do
         {:ok,
          socket
          |> assign(:page_title, "Managing Secret")
+         |> assign(:changeset, Secret.managing_changeset(secret))
          |> assign(:special_action, nil)
          |> assign(:self_burned?, false)
          |> detect_presence()}
@@ -72,17 +73,37 @@ defmodule LiveSecretWeb.PageLive do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
+  def handle_event("do_update", %{"secret" => attrs}, socket) do
+    %{assigns: assigns = %{secret: secret}} = socket
+
+    case assigns do
+      %{do_update_tref: tref} ->
+        :timer.cancel(tref)
+
+      _ ->
+        :ok
+    end
+
+    {:ok, tref} =
+      :timer.apply_after(1000, fn ->
+        changeset = Secret.managing_changeset(secret, attrs)
+        LiveSecret.update!(changeset)
+      end)
+
+    {:noreply, socket |> assign(:do_update_tref, tref)}
+  end
+
   # Submit form data for secret creation
   def handle_event("create", %{"presecret" => attrs}, socket) do
     %{assigns: %{tenant: tenant}} = socket
-    %Secret{id: id, creator_key: creator_key} = LiveSecret.insert!(tenant, attrs)
+    secret = %Secret{id: id, creator_key: creator_key} = LiveSecret.insert!(tenant, attrs)
 
     case assign_secret_or_redirect(socket, id) do
       {:ok, socket} ->
         {:noreply,
          socket
-         |> assign(:changeset, nil)
          |> assign(:page_title, "Managing Secret")
+         |> assign(:changeset, Secret.managing_changeset(secret))
          |> push_patch(to: ~p"/admin/#{id}?key=#{creator_key}")}
 
       {_error, socket} ->
@@ -145,6 +166,19 @@ defmodule LiveSecretWeb.PageLive do
     end
 
     {:noreply, socket |> assign(self_burned?: true)}
+  end
+
+  def handle_event("decrypt_failure", %{"count" => count}, socket) do
+    %{
+      assigns: %{
+        secret: secret,
+        current_user: current_user,
+        users: users
+      }
+    } = socket
+
+    LiveSecretWeb.Presence.on_decrypt_failure(secret.id, users[current_user.id], count)
+    {:noreply, socket}
   end
 
   @impl true
@@ -308,13 +342,14 @@ defmodule LiveSecretWeb.PageLive do
       when not is_nil(user) do
     %{assigns: %{secret: secret, live_action: live_action}} = socket
 
-    active_user = %ActiveUser{
-      id: user[:id],
-      name: user[:name],
-      live_action: live_action,
-      joined_at: NaiveDateTime.utc_now(),
-      state: if(secret.live?, do: :locked, else: :unlocked)
-    }
+    active_user =
+      ActiveUser.new(
+        user[:id],
+        user[:name],
+        live_action,
+        NaiveDateTime.utc_now(),
+        if(secret.live?, do: :locked, else: :unlocked)
+      )
 
     special_action =
       case {live_action, active_user.state} do

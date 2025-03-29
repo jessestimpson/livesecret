@@ -12,6 +12,7 @@ defmodule LiveSecret.Presecret do
     field :iv, :string, redact: true
     field :mode, Ecto.Enum, values: @modes, default: :live
     field :duration, :string, default: "1h"
+    field :label, :string
   end
 
   def new() do
@@ -28,7 +29,8 @@ defmodule LiveSecret.Presecret do
           "content" => content,
           "iv" => iv,
           "duration" => duration,
-          "mode" => mode
+          "mode" => mode,
+          "label" => label
         }
       ) do
     now = NaiveDateTime.utc_now()
@@ -39,6 +41,7 @@ defmodule LiveSecret.Presecret do
       creator_key: OperationalKey.generate(),
       burn_key: burn_key,
       live?: mode == "live",
+      label: label,
       expires_at: NaiveDateTime.add(now, duration_to_seconds(duration))
     }
   end

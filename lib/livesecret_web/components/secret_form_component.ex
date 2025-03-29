@@ -16,7 +16,17 @@ defmodule LiveSecretWeb.SecretFormComponent do
       autocomplete="off"
     >
       <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
-        {label(f, :content, class: "block text-xs font-medium text-gray-700 pt-2 px-2")}
+        <div class="flex">
+          <input
+            phx-feedback-for="label"
+            type="text"
+            name={f[:label].name}
+            class="flex text-xs font-medium text-gray-700 pt-2 px-2 border-0 focus:ring-0"
+            id={f[:label].id}
+            value={Phoenix.HTML.Form.normalize_value("text", f[:label].value)}
+            placeholder="Content"
+          />
+        </div>
         <div phx-update="ignore" id="cleartext-div-for-ignore">
           <textarea
             id="cleartext"

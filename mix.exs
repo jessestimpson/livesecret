@@ -36,7 +36,7 @@ defmodule LiveSecret.MixProject do
       {:phoenix, "~> 1.7.0"},
       {:ecto, "~> 3.10"},
       {:phoenix_ecto, "~> 4.6"},
-      {:ecto_foundationdb, "~> 0.4.0"},
+      {:ecto_foundationdb, github: "foundationdb-beam/ecto_foundationdb"},
       {:ex_fdbmonitor, "~> 0.1", only: [:dev, :prod]},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},

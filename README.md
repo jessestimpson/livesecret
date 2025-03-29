@@ -162,7 +162,3 @@ FoundationDB paths:
   * Docs: https://hexdocs.pm/phoenix
   * Forum: https://elixirforum.com/c/phoenix-forum
   * Source: https://github.com/phoenixframework/phoenix
-
-## Next
-1. JavaScript and LiveView unit tests
-2. Change "Joined at" to "Joined since" and update incrementing counter
