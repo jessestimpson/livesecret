@@ -45,6 +45,7 @@ services:
       REMOTE_IP_CLIENTS: 0.0.0.0/0
       FDBSERVER_MEMORY: ${FDBSERVER_MEMORY:-8GiB}
       FDBSERVER_CACHE_MEMORY: ${FDBSERVER_CACHE_MEMORY:-2GiB}
+      FDB_STORAGE_ENGINE: ${FDB_STORAGE_ENGINE:-ssd-redwood-1}
     volumes:
       - db-data:/data:rw
     network_mode: bridge
