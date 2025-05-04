@@ -1,5 +1,7 @@
 import Config
 
+env = Mix.Project.config()[:env][:dev]
+
 config :livesecret, LiveSecret.Repo, open_db: &ExFdbmonitor.Cluster.open_db/1
 
 config :ex_fdbmonitor,
@@ -30,7 +32,7 @@ config :ex_fdbmonitor,
 config :livesecret, LiveSecretWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: env[:port] || 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
