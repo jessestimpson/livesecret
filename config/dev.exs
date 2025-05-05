@@ -39,8 +39,8 @@ config :livesecret, LiveSecretWeb.Endpoint,
   secret_key_base: "w9eMeujF/6XhGnVYss/F/kuQ8ZY8xt7ziDkCfxzirt/5F8s7R7pU1c7bIE6eYIh1",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:livesecret, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:livesecret, ~w(--watch)]}
   ]
 
 # ## SSL Support

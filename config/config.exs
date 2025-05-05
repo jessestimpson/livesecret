@@ -17,7 +17,7 @@ config :livesecret, LiveSecretWeb.Endpoint,
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.14.29",
-  default: [
+  livesecret: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -34,7 +34,7 @@ config :phoenix, :json_library, Jason
 
 config :tailwind,
   version: "3.1.8",
-  default: [
+  livesecret: [
     args: ~w(
     --config=tailwind.config.js
     --input=css/app.css
