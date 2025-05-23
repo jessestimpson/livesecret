@@ -145,6 +145,7 @@ Standard Phoenix:
 * `SECRET_KEY_BASE`: Standard Phoenix env var for encrypting cookie, etc
 
 Unique to LiveSecret:
+* `LIVESECRET_DATABASE`: When `"embed"` LiveSecret uses an embedded database. Otherwise, the operator must provide a remote database.
 * `BEHIND_PROXY`: When `"true"` LiveSecret Presence discovers the user's IP address via the
    configured x-header. It is strongly recommended to use a reverse proxy.
 * `REMOTE_IP_HEADER`: The trusted x-header that presents the end user's IP address. It must

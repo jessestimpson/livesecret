@@ -20,7 +20,7 @@ if System.get_env("PHX_SERVER") do
   config :livesecret, LiveSecretWeb.Endpoint, server: true
 end
 
-if config_env() == :prod do
+if config_env() == :prod and "embed" == System.get_env("LIVESECRET_DATABASE", "embed") do
   config :ex_fdbmonitor,
     fdbmonitor: System.get_env("FDBMONITOR_PATH") || "/usr/local/libexec/fdbmonitor",
     fdbcli: System.get_env("FDBCLI_PATH") || "/usr/local/bin/fdbcli",
@@ -80,7 +80,9 @@ if config_env() == :prod do
       fdbcli: if(node_idx == 2, do: ~w[configure double]),
       fdbcli: if(node_idx == node_count - 1, do: ~w[coordinators auto])
     ]
+end
 
+if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want
