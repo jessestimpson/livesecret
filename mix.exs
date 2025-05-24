@@ -66,8 +66,8 @@ defmodule LiveSecret.MixProject do
   defp aliases do
     [
       "assets.deploy": [
-        "tailwind default --minify",
-        "esbuild default --minify",
+        "tailwind livesecret --minify",
+        "esbuild livesecret --minify",
         "phx.digest"
       ]
     ]
