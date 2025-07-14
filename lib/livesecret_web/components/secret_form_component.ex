@@ -13,6 +13,7 @@ defmodule LiveSecretWeb.SecretFormComponent do
       id="secret-form"
       phx-change="validate"
       phx-submit="create"
+      phx-hook="CreateSecret"
       autocomplete="off"
     >
       <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
@@ -210,9 +211,8 @@ defmodule LiveSecretWeb.SecretFormComponent do
     ~H"""
     <div class="flex-shrink-0">
       <button
-        type="button"
+        type="submit"
         class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        phx-click={JS.dispatch("live-secret:create-secret")}
       >
         Encrypt
       </button>

@@ -62,6 +62,13 @@ defmodule LiveSecret.Secret do
     |> Ecto.Changeset.cast(attrs, [:label])
   end
 
+  def receiver_changeset(_secret, attrs \\ %{}) do
+    # If we're not careful here, we can expose the burn_key to the receiver prematurely, so
+    # we just create an empty changeset.
+    %Secret{}
+    |> Ecto.Changeset.cast(attrs, [])
+  end
+
   def validate_content_size(changeset) do
     validate_byte_size_less_equal(changeset, :content, @maxcontentsize)
   end

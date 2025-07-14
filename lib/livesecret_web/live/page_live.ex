@@ -34,9 +34,12 @@ defmodule LiveSecretWeb.PageLive do
   def mount(%{"id" => id}, %{}, socket = %{assigns: %{live_action: :receiver}}) do
     case sync_secret_or_redirect(socket, id) do
       {:ok, socket} ->
+        %{assigns: %{secret: secret}} = socket
+
         {:ok,
          socket
          |> assign(:page_title, "Receiving Secret")
+         |> assign(:changeset, Secret.receiver_changeset(secret))
          |> assign(:special_action, nil)
          |> assign(:self_burned?, false)
          |> detect_presence()}

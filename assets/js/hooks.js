@@ -1,11 +1,13 @@
+import CreateSecret from "./hooks/createSecret";
+import DecryptSecret from "./hooks/decryptSecret";
 import ShowPassphraseAfterCreate from "./hooks/showPassphraseAfterCreate";
-import SubmitDecrypt from "./hooks/submitDecrypt";
 import OnIncorrectPassphrase from "./hooks/onIncorrectPassphrase";
 import ComputeTimestampAgo from "./hooks/computeTimestampAgo";
 
 let Hooks = {
+  CreateSecret: CreateSecret,
+  DecryptSecret: DecryptSecret,
   ShowPassphraseAfterCreate: ShowPassphraseAfterCreate,
-  SubmitDecrypt: SubmitDecrypt,
   OnIncorrectPassphrase: OnIncorrectPassphrase,
   ComputeTimestampAgo: ComputeTimestampAgo,
 };
