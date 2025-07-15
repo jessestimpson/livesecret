@@ -4,7 +4,8 @@ defmodule LiveSecret.Repo do
 
   def migrations() do
     [
-      {0, LiveSecret.Migrations.Secret.CreateExpiresAtIndex}
+      {0, LiveSecret.Migrations.Secret.CreateExpiresAtIndex},
+      {1, LiveSecret.Migrations.Secret.SchemaMetadata}
     ]
   end
 end

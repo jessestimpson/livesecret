@@ -37,7 +37,12 @@ defmodule LiveSecretWeb.Router do
     scope "/" do
       pipe_through(:browser)
 
-      live_dashboard("/dashboard", metrics: LiveSecretWeb.Telemetry)
+      live_dashboard("/dashboard",
+        metrics: LiveSecretWeb.Telemetry,
+        additional_pages: [
+          secrets: LiveSecretWeb.SecretsDashboardPage
+        ]
+      )
     end
   end
 end

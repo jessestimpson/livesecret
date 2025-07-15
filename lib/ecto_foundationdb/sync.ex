@@ -1,38 +1,21 @@
 defmodule EctoFoundationDB.Sync do
   alias Ecto.Adapters.FoundationDB
 
+  alias EctoFoundationDB.Indexer.SchemaMetadata
+
   @doc """
-  Initializes a Sync of a single record.
-
-  This is to be paired with `handle_ready/3` to provide automatic updating of `assigns` in `state`.
-
-  ## Arguments
-
-  - `state`: A map with key `:assigns` and `:private`. `private` must be a map with key `:tenant`
-  - `name`: Unique name for the sync (identifier for attach_hook)
-  - `repo`: An Ecto repository
-  - `shema`: The schema of the record to sync
-  - `label`: The label to assign the synced record to
-  - `id`: The id of the record to sync
-  - `opts`: Options
-
-  ## Options
-
-  See options for `sync_many!/5`
-
-  ## Return
-
-  The `state` is updated according to the behavior of `sync_many!/3`.
-
+  Equivalent to `sync_many!/5` with a single record.
   """
   def sync_one!(state, name, repo, schema, label, id, opts \\ []) do
     sync_many!(state, name, repo, [{schema, label, id}], opts)
   end
 
   @doc """
-  Initializes a Sync of several individual records.
+  Initializes a Sync of one or more individual records.
 
-  This is to be paired with `handle_ready/3` to provide automatic updating of `assigns` in `state`.
+  This is to be paired with `handle_ready/3` to provide automatic updating of `assigns` in `state`. If you're using
+  the default LiveView attach_hook as described in the Options, then `handle_ready/3` will be set up for you
+  automatically.
 
   ## Arguments
 
@@ -56,7 +39,7 @@ defmodule EctoFoundationDB.Sync do
 
   ### `assigns`
 
-  - Provided labels from `id_assigns` are used to register the results from `repo.get!/3`. For
+  - Provided labels from `id_assigns` are used to register the results from `repo.get/3`. For
     any records not found, `nil` is assigned, and no watch is created.
 
   ### `private`
@@ -104,12 +87,104 @@ defmodule EctoFoundationDB.Sync do
   end
 
   @doc """
+  Equivalent to `sync_all!/5` with a single schema.
+  """
+  def sync_all!(state, name, repo, schema, label, opts) do
+    sync_all!(state, name, repo, [{schema, label}], opts)
+  end
+
+  @doc """
+  Initializes a Sync of one or more schemas from a tenant using `EctoFoundationDB.Indexer.SchemaMetadata` for collection tracking.
+
+  This is to be paired with `handle_ready/3` to provide automatic updating of `assigns` in `state`. If you're using
+  the default LiveView attach_hook as described in the Options, then `handle_ready/3` will be set up for you
+  automatically.
+
+  ## Arguments
+
+  - `state`: A map with key `:assigns` and `:private`. `private` must be a map with key `:tenant`
+  - `name`: Unique name for the sync (identifier for attach_hook)
+  - `repo`: An Ecto repository
+  - `schema_assigns`: A list of tuples with schema and label
+  - `opts`: Options
+
+  ## Options
+
+  - `assign`: A function that takes the current socket and new assigns and returns the updated state.
+    When not provided: if `Phoenix.Component` is available, we use `Phoenix.Component.assign/3`, otherwise we use `Map.put/3`.
+  - `attach_hook`: A function that takes `state, name, repo, opts` and modifies state as needed to attach a hook. Defaults to a function that uses LiveView.attach_hook.
+    When not provided: if `Phoenix.LiveView` is available, we use `Phoenix.LiewView.attach_hook/4`, otherwise we do nothing.
+  - `post_hook`: A function that takes `state` and modifies it as desired after the hook is executed. Defaults to a noop
+  - `watch_action`: An atom representing the signal from the `SchemaMetadata` you're interested in syncing. Defaults to `:changes`
+
+  ### `watch_action`
+
+  - `inserts`: Receive signal for each insert or upsert
+  - `deletes`: Receive signal for each delete
+  - `collection`: Receive signal for each insert, upsert, or delete
+  - `updates`: Receive signal for each update (via `Repo.update/*`)
+  - `changes`: Receive signal for each insert, upsert, delete, or update
+
+  ## Return
+
+  Returns an updated `state`, with `:assigns` and `:private` updated with the following values:
+
+  ### `assigns`
+
+  - Provided labels from `schema_assigns` are used to register the results from `repo.all/3`
+
+  ### `private`
+
+  - We add or append to the `:futures` list.
+
+  """
+  def sync_all!(state, name, repo, schema_assigns, opts) do
+    %{private: private} = state
+    %{tenant: tenant} = private
+
+    futures = Map.get(private, :futures, [])
+
+    watch_action = Keyword.get(opts, :watch_action, :changes)
+
+    {new_assigns, new_futures} =
+      repo.transactional(
+        tenant,
+        fn ->
+          get_futures =
+            for {schema, _label} <- schema_assigns, do: repo.async_all(schema)
+
+          lists = repo.await(get_futures)
+
+          Enum.zip(schema_assigns, lists)
+          |> Enum.map(fn {{schema, label}, list} ->
+            list = Enum.map(list, &FoundationDB.usetenant(&1, tenant))
+            watch_future = do_watch_action(watch_action, schema, label: label)
+            {{label, list}, watch_future}
+          end)
+        end
+      )
+      |> Enum.unzip()
+
+    private = Map.put(private, :futures, futures ++ new_futures)
+    state = %{state | private: private}
+
+    state
+    |> apply_assign(new_assigns, opts)
+    |> apply_attach_hook(name, repo, opts)
+  end
+
+  @doc """
   This hook can be attached to a compatible Elixir process to automatically
   process handle_info `:ready` messages from EctoFDB.
 
-  This hook is designed to be used with LiveView's `attach_hook`.
+  This hook is designed to be used with LiveView's `attach_hook`. If you're using
+  one of the `sync_*` function in this module, the hook is attached automatically. You
+  do not need to call this function.
 
-  ## Agruments
+  @todo: Batch ready messages? We could consume all available {ref, ready} from the mailbox and do many at once, but
+  if any end up not belonging to us, we'd have to re-send them, which violates message ordering.
+
+  ## Arguments
 
   - `repo`: An Ecto repository.
   - `info`: A message received on the process mailbox. We will inspect messages of the form
@@ -187,6 +262,7 @@ defmodule EctoFoundationDB.Sync do
     end
   end
 
+  # Optional Phoenix.Component assign behavior
   if Code.ensure_loaded?(Phoenix.Component) do
     defp assign(state, new_assigns) do
       Phoenix.Component.assign(state, new_assigns)
@@ -199,6 +275,7 @@ defmodule EctoFoundationDB.Sync do
     end
   end
 
+  # Optional Phoenix.LiveView attach_hook behavior
   if Code.ensure_loaded?(Phoenix.LiveView) do
     defp attach_hook(state, name, event, cb) do
       Phoenix.LiveView.attach_hook(state, name, event, cb)
@@ -208,4 +285,13 @@ defmodule EctoFoundationDB.Sync do
       state
     end
   end
+
+  defp do_watch_action(:inserts, schema, opts), do: SchemaMetadata.watch_inserts(schema, opts)
+  defp do_watch_action(:deletes, schema, opts), do: SchemaMetadata.watch_deletes(schema, opts)
+
+  defp do_watch_action(:collection, schema, opts),
+    do: SchemaMetadata.watch_collection(schema, opts)
+
+  defp do_watch_action(:updates, schema, opts), do: SchemaMetadata.watch_updates(schema, opts)
+  defp do_watch_action(:changes, schema, opts), do: SchemaMetadata.watch_changes(schema, opts)
 end
