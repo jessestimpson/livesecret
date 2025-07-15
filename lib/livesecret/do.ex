@@ -18,8 +18,8 @@ defmodule LiveSecret.Do do
     Sync.sync_one!(state, :sync_secret, Repo, Secret, label, id, opts)
   end
 
-  def sync_secrets(state, label) do
-    Sync.sync_all!(state, :sync_secrets, Repo, Secret, label, [])
+  def sync_secrets(state, label, query) do
+    Sync.sync_all!(state, :sync_secrets, Repo, [{Secret, label, query}], [])
   end
 
   def sync_hook(info, state, opts) do

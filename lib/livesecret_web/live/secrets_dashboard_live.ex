@@ -2,7 +2,8 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
   alias LiveSecretWeb.Presence
-  # import Phoenix.LiveDashboard.Helpers
+  alias LiveSecret.Secret
+  import Ecto.Query
 
   @impl true
   def menu_link(_, _) do
@@ -11,10 +12,12 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
 
   @impl true
   def mount(_params, _session, socket) do
+    query = from s in Secret, order_by: [desc: s.inserted_at]
+
     {:ok,
      socket
      |> put_private(:tenant, Presence.tenant_from_socket(socket))
-     |> LiveSecret.sync_secrets(:secrets)}
+     |> LiveSecret.sync_secrets(:secrets, query)}
   end
 
   @impl true
@@ -26,6 +29,7 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
       <:col field={:burned_at} />
       <:col field={:expires_at} />
       <:col field={:live?} />
+      <:col field={:inserted_at} />
     </.table>
     """
   end

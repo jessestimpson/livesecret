@@ -105,7 +105,7 @@ defmodule EctoFoundationDB.Sync do
   - `state`: A map with key `:assigns` and `:private`. `private` must be a map with key `:tenant`
   - `name`: Unique name for the sync (identifier for attach_hook)
   - `repo`: An Ecto repository
-  - `schema_assigns`: A list of tuples with schema and label
+  - `schema_assigns`: A list of tuples with {schema, label} or {schema, label, query}
   - `opts`: Options
 
   ## Options
@@ -151,15 +151,33 @@ defmodule EctoFoundationDB.Sync do
         tenant,
         fn ->
           get_futures =
-            for {schema, _label} <- schema_assigns, do: repo.async_all(schema)
+            Enum.map(
+              schema_assigns,
+              fn
+                {schema, _label} ->
+                  repo.async_all(schema)
+
+                {_schema, _label, query} ->
+                  repo.async_all(query)
+              end
+            )
 
           lists = repo.await(get_futures)
 
           Enum.zip(schema_assigns, lists)
-          |> Enum.map(fn {{schema, label}, list} ->
-            list = Enum.map(list, &FoundationDB.usetenant(&1, tenant))
-            watch_future = do_watch_action(watch_action, schema, label: label)
-            {{label, list}, watch_future}
+          |> Enum.map(fn
+            {{schema, label}, list} ->
+              list = Enum.map(list, &FoundationDB.usetenant(&1, tenant))
+              watch_future = SchemaMetadata.watch(schema, watch_action, label: label)
+              {{label, list}, watch_future}
+
+            {{schema, label, query}, list} ->
+              list = Enum.map(list, &FoundationDB.usetenant(&1, tenant))
+
+              watch_future =
+                SchemaMetadata.watch(schema, watch_action, label: label, query: query)
+
+              {{label, list}, watch_future}
           end)
         end
       )
@@ -285,13 +303,4 @@ defmodule EctoFoundationDB.Sync do
       state
     end
   end
-
-  defp do_watch_action(:inserts, schema, opts), do: SchemaMetadata.watch_inserts(schema, opts)
-  defp do_watch_action(:deletes, schema, opts), do: SchemaMetadata.watch_deletes(schema, opts)
-
-  defp do_watch_action(:collection, schema, opts),
-    do: SchemaMetadata.watch_collection(schema, opts)
-
-  defp do_watch_action(:updates, schema, opts), do: SchemaMetadata.watch_updates(schema, opts)
-  defp do_watch_action(:changes, schema, opts), do: SchemaMetadata.watch_changes(schema, opts)
 end
