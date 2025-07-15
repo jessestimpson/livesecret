@@ -1,6 +1,7 @@
 defmodule LiveSecret.Do do
-  alias LiveSecret.{Repo, Secret, Presecret, Sync}
+  alias LiveSecret.{Repo, Secret, Presecret}
   alias Ecto.Adapters.FoundationDB
+  alias EctoFoundationDB.Sync
   alias EctoFoundationDB.Tenant
 
   import Ecto.Query

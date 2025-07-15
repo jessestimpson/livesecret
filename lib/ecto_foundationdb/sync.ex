@@ -1,8 +1,5 @@
-defmodule LiveSecret.Sync do
+defmodule EctoFoundationDB.Sync do
   alias Ecto.Adapters.FoundationDB
-
-  alias Phoenix.Component
-  alias Phoenix.LiveView
 
   @doc """
   Initializes a Sync of a single record.
@@ -21,10 +18,7 @@ defmodule LiveSecret.Sync do
 
   ## Options
 
-  - `assign`: A function that takes the current socket and new assigns and returns a tuple of new assigns and state.
-    By default, we simply update the assigns map with the new labels. The default is not sufficient for LiveView's assign
-  - `attach_hook`: A function that takes `state, name, repo, opts` and modifies state as needed to attach a hook. Defaults to a function that uses LiveView.attach_hook.
-  - `post_hook`: A function that takes `state` and modifies it as desired after the hook is executed. Defaults to a noop
+  See options for `sync_many!/5`
 
   ## Return
 
@@ -50,9 +44,10 @@ defmodule LiveSecret.Sync do
 
   ## Options
 
-  - `assign`: A function that takes the current socket and new assigns and returns a tuple of new assigns and state.
-    By default, we simply update the assigns map with the new labels. The default is not sufficient for LiveView's assign
+  - `assign`: A function that takes the current socket and new assigns and returns the updated state.
+    When not provided: if `Phoenix.Component` is available, we use `Phoenix.Component.assign/3`, otherwise we use `Map.put/3`.
   - `attach_hook`: A function that takes `state, name, repo, opts` and modifies state as needed to attach a hook. Defaults to a function that uses LiveView.attach_hook.
+    When not provided: if `Phoenix.LiveView` is available, we use `Phoenix.LiewView.attach_hook/4`, otherwise we do nothing.
   - `post_hook`: A function that takes `state` and modifies it as desired after the hook is executed. Defaults to a noop
 
   ## Return
@@ -166,15 +161,13 @@ defmodule LiveSecret.Sync do
 
   defp apply_assign(state, new_assigns, opts) do
     apply_callback(:assign, [state, new_assigns], opts, fn state, new_assigns ->
-      Component.assign(state, new_assigns)
+      assign(state, new_assigns)
     end)
   end
 
   defp apply_attach_hook(state, name, repo, opts) do
     apply_callback(:attach_hook, [state, name, repo, opts], opts, fn state, name, repo, opts ->
-      state
-      |> LiveView.detach_hook(name, :handle_info)
-      |> LiveView.attach_hook(name, :handle_info, &handle_ready(repo, &1, &2, opts))
+      attach_hook(state, name, :handle_info, &handle_ready(repo, &1, &2, opts))
     end)
   end
 
@@ -194,9 +187,25 @@ defmodule LiveSecret.Sync do
     end
   end
 
-  def assign(state, new_assigns) do
-    %{assigns: assigns} = state
-    assigns = Map.merge(assigns, Enum.into(new_assigns, %{}))
-    %{state | assigns: assigns}
+  if Code.ensure_loaded?(Phoenix.Component) do
+    defp assign(state, new_assigns) do
+      Phoenix.Component.assign(state, new_assigns)
+    end
+  else
+    defp assign(state, new_assigns) do
+      %{assigns: assigns} = state
+      assigns = Map.merge(assigns, Enum.into(new_assigns, %{}))
+      %{state | assigns: assigns}
+    end
+  end
+
+  if Code.ensure_loaded?(Phoenix.LiveView) do
+    defp attach_hook(state, name, event, cb) do
+      Phoenix.LiveView.attach_hook(state, name, event, cb)
+    end
+  else
+    defp attach_hook(state, _name, _event, _cb) do
+      state
+    end
   end
 end

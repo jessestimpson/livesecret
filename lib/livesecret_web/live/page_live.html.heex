@@ -22,7 +22,7 @@
         <PageComponents.decrypt_modal
           :if={@special_action == :decrypting and (@self_burned? or not is_nil(@secret.content))}
           secret={@secret}
-          changeset={Secret.receiver_changeset(@secret, %{})}
+          changeset={@changeset}
         />
 
         <%= case @live_action do %>
