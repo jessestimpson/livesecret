@@ -25,7 +25,6 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import Hooks from "./hooks";
-import Events from "./events";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -122,6 +121,3 @@ window.addEventListener("live-secret:select-choice", (event) => {
   event.target.value = event.detail.value;
   event.target.dispatchEvent(new Event("input", { bubbles: true }));
 });
-
-window.addEventListener("live-secret:create-secret", Events.CreateSecret);
-window.addEventListener("live-secret:decrypt-secret", Events.DecryptSecret);

@@ -465,129 +465,128 @@ defmodule LiveSecretWeb.PageComponents do
             To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         -->
           <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full md:w-2/3 sm:p-6">
-            <div>
-              <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <!-- Heroicon name: outline/lock-open -->
-                <svg
-                  class="h-6 w-6 text-red-600"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 01-1.5 0V6.75a3.75 3.75 0 10-7.5 0v3a3 3 0 013 3v6.75a3 3 0 01-3 3H3.75a3 3 0 01-3-3v-6.75a3 3 0 013-3h9v-3c0-2.9 2.35-5.25 5.25-5.25z" />
-                </svg>
-              </div>
-              <div id="passphraseform" class="mt-3 text-center sm:mt-5" phx-update="ignore">
-                <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                  Enter the passphrase
-                </h3>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500">
-                    Paste the passphrase into this box and press 'Decrypt'. The secret content will be shown if the passphrase is correct.
-                  </p>
+            <.form :let={f} for={@changeset} phx-change="burn" phx-submit="burn" phx-hook="DecryptSecret" autocomplete="off">
+              <div>
+                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                  <!-- Heroicon name: outline/lock-open -->
+                  <svg
+                    class="h-6 w-6 text-red-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 01-1.5 0V6.75a3.75 3.75 0 10-7.5 0v3a3 3 0 013 3v6.75a3 3 0 01-3 3H3.75a3 3 0 01-3-3v-6.75a3 3 0 013-3h9v-3c0-2.9 2.35-5.25 5.25-5.25z" />
+                  </svg>
                 </div>
-                <div class="pt-2" phx-update="ignore" id="passphrase-div-for-ignore">
-                  <input
-                    type="text"
-                    name="passphrase"
-                    id="passphrase"
-                    class="block w-full rounded-full border-gray-300 px-4 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="Passphrase"
-                    autocomplete="off"
-                    phx-hook="SubmitDecrypt"
-                  />
-                </div>
-              </div>
-              <div id="successmessage" class="mt-3 text-center sm:mt-5 hidden" phx-update="ignore">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">
-                  Success!
-                </h3>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500">
-                    When you leave this window, the content is gone forever.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div id="ciphertext-div-for-ignore" phx-update="ignore">
-              <input
-                type="hidden"
-                id="ciphertext"
-                value={if is_nil(@secret.content), do: nil, else: :base64.encode(@secret.content)}
-              />
-            </div>
-            <div id="iv-div-for-ignore" phx-update="ignore">
-              <input
-                type="hidden"
-                id="iv"
-                value={if is_nil(@secret.iv), do: nil, else: :base64.encode(@secret.iv)}
-              />
-            </div>
-            <div id="decryptionfailure-div-for-ignore">
-              <div id="decryptionfailure-container" class="hidden text-center pt-1">
-                <div class="inline-flex">
-                  <div class="block pr-2">
-                    <p class="text-md text-gray-700">Incorrect passphrase - try again</p>
+                <div id="passphraseform" class="mt-3 text-center sm:mt-5" phx-update="ignore">
+                  <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                    Enter the passphrase
+                  </h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">
+                      Paste the passphrase into this box and press 'Decrypt'. The secret content will be shown if the passphrase is correct.
+                    </p>
                   </div>
-                  <span
-                    class="hidden inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
-                    id="fail-counter"
-                    phx-hook="OnIncorrectPassphrase"
-                  >
-                    0
-                  </span>
+                  <div class="pt-2" phx-update="ignore" id="passphrase-div-for-ignore">
+                    <input
+                      type="text"
+                      name="passphrase"
+                      id="passphrase"
+                      class="block w-full rounded-full border-gray-300 px-4 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      placeholder="Passphrase"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+                <div id="successmessage" class="mt-3 text-center sm:mt-5 hidden" phx-update="ignore">
+                  <h3 class="text-lg font-medium leading-6 text-gray-900">
+                    Success!
+                  </h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">
+                      When you leave this window, the content is gone forever.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div id="cleartext-div-for-ignore" phx-update="ignore">
-              <div id="cleartext-container" class="hidden text-center">
-                <textarea
-                  id="cleartext"
-                  readonly
-                  class="block w-full resize-none rounded-md border-yellow-400 bg-gray-100 placeholder-gray-500 ring-0 font-mono"
+
+              <div id="ciphertext-div-for-ignore" phx-update="ignore">
+                <input
+                  type="hidden"
+                  id="ciphertext"
+                  value={if is_nil(@secret.content), do: nil, else: :base64.encode(@secret.content)}
                 />
-                <div class="p-4 w-full flex justify-center items-center align-center">
-                  <button
-                    type="button"
-                    class="text-blue-700 bg-blue-100 hover:bg-blue-200 focus:ring-blue-500 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm "
-                    phx-click={JS.dispatch("live-secret:clipcopy", to: "#cleartext")}
-                  >
-                    Copy to clipboard <.action_icon has_text={true} id={:clipboard} />
-                  </button>
+              </div>
+              <div id="iv-div-for-ignore" phx-update="ignore">
+                <input
+                  type="hidden"
+                  id="iv"
+                  value={if is_nil(@secret.iv), do: nil, else: :base64.encode(@secret.iv)}
+                />
+              </div>
+              <div id="decryptionfailure-div-for-ignore">
+                <div id="decryptionfailure-container" class="hidden text-center pt-1">
+                  <div class="inline-flex">
+                    <div class="block pr-2">
+                      <p class="text-md text-gray-700">Incorrect passphrase - try again</p>
+                    </div>
+                    <span
+                      class="hidden inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
+                      id="fail-counter"
+                      phx-hook="OnIncorrectPassphrase"
+                    >
+                      0
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+              <div id="cleartext-div-for-ignore" phx-update="ignore">
+                <div id="cleartext-container" class="hidden text-center">
+                  <textarea
+                    id="cleartext"
+                    readonly
+                    class="block w-full resize-none rounded-md border-yellow-400 bg-gray-100 placeholder-gray-500 ring-0 font-mono"
+                  />
+                  <div class="p-4 w-full flex justify-center items-center align-center">
+                    <button
+                      type="button"
+                      class="text-blue-700 bg-blue-100 hover:bg-blue-200 focus:ring-blue-500 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm "
+                      phx-click={JS.dispatch("live-secret:clipcopy", to: "#cleartext")}
+                    >
+                      Copy to clipboard <.action_icon has_text={true} id={:clipboard} />
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-            <.form :let={f} for={@changeset} phx-change="burn" autocomplete="off">
               {hidden_input(f, :burn_key, id: "burnkey")}
-            </.form>
 
-            <div
-              id="decrypt-btns-div-for-ignore"
-              phx-update="ignore"
-              class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3"
-            >
-              <button
-                type="button"
-                id="decrypt-btn"
-                class="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-2 sm:text-sm"
-                phx-click={JS.dispatch("live-secret:decrypt-secret")}
+              <div
+                id="decrypt-btns-div-for-ignore"
+                phx-update="ignore"
+                class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3"
               >
-                Decrypt
-              </button>
-              <button
-                type="button"
-                id="close-btn"
-                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
-                phx-click={JS.hide(to: "#decrypt-modal") |> JS.show(to: "#decrypt-instructions")}
-              >
-                Close
-              </button>
-            </div>
+                <button
+                  type="submit"
+                  id="decrypt-btn"
+                  class="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-2 sm:text-sm"
+                  phx-hook="DecryptSecret"
+                >
+                  Decrypt
+                </button>
+                <button
+                  type="button"
+                  id="close-btn"
+                  class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
+                  phx-click={JS.hide(to: "#decrypt-modal") |> JS.show(to: "#decrypt-instructions")}
+                >
+                  Close
+                </button>
+              </div>
+            </.form>
           </div>
         </div>
       </div>

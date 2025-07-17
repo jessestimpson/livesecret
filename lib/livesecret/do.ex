@@ -1,6 +1,7 @@
 defmodule LiveSecret.Do do
   alias LiveSecret.{Repo, Secret, Presecret}
   alias Ecto.Adapters.FoundationDB
+  alias EctoFoundationDB.Sync
   alias EctoFoundationDB.Tenant
 
   import Ecto.Query
@@ -13,21 +14,16 @@ defmodule LiveSecret.Do do
     Tenant.open!(Repo, tenant_id)
   end
 
-  def watch_secret(tenant, label, id) do
-    Repo.transaction(
-      fn ->
-        case Repo.get(Secret, id) do
-          nil ->
-            {:error, :not_found}
+  def sync_secret(state, label, id, opts) do
+    Sync.sync_one!(state, :sync_secret, Repo, Secret, label, id, opts)
+  end
 
-          secret ->
-            # workaround for [ecto_foundationdb/#37](https://github.com/ecto-foundationdb/ecto_foundationdb/issues/37)
-            secret = FoundationDB.usetenant(secret, tenant)
-            {:ok, {secret, Repo.watch(secret, label: label)}}
-        end
-      end,
-      prefix: tenant
-    )
+  def sync_secrets(state, label, query) do
+    Sync.sync_all!(state, :sync_secrets, Repo, [{Secret, label, query}], [])
+  end
+
+  def sync_hook(info, state, opts) do
+    Sync.handle_ready(Repo, info, state, opts)
   end
 
   def delete_secrets_expiring_before(tenant, now) do

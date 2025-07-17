@@ -1,10 +1,7 @@
 defmodule LiveSecretWeb.PageLive do
   use LiveSecretWeb, :live_view
 
-  alias Ecto.Adapters.FoundationDB
-
   alias LiveSecret.Presecret
-  alias LiveSecret.Repo
   alias LiveSecret.Secret
 
   alias LiveSecretWeb.ActiveUser
@@ -15,7 +12,7 @@ defmodule LiveSecretWeb.PageLive do
 
   @impl true
   def mount(%{"id" => id, "key" => key}, %{}, socket = %{assigns: %{live_action: :admin}}) do
-    case assign_secret_or_redirect(socket, id) do
+    case sync_secret_or_redirect(socket, id) do
       {:ok, socket} ->
         %{assigns: %{secret: secret}} = socket
 
@@ -29,17 +26,20 @@ defmodule LiveSecretWeb.PageLive do
          |> assign(:self_burned?, false)
          |> detect_presence()}
 
-      socket ->
+      {_error, socket} ->
         {:ok, socket}
     end
   end
 
   def mount(%{"id" => id}, %{}, socket = %{assigns: %{live_action: :receiver}}) do
-    case assign_secret_or_redirect(socket, id) do
+    case sync_secret_or_redirect(socket, id) do
       {:ok, socket} ->
+        %{assigns: %{secret: secret}} = socket
+
         {:ok,
          socket
          |> assign(:page_title, "Receiving Secret")
+         |> assign(:changeset, Secret.receiver_changeset(secret))
          |> assign(:special_action, nil)
          |> assign(:self_burned?, false)
          |> detect_presence()}
@@ -68,7 +68,7 @@ defmodule LiveSecretWeb.PageLive do
         %{"presecret" => attrs},
         socket = %{assigns: %{changeset: _changeset}}
       ) do
-    %{assigns: %{tenant: tenant}} = socket
+    %{private: %{tenant: tenant}} = socket
     changeset = LiveSecret.validate_presecret(tenant, attrs)
     {:noreply, assign(socket, :changeset, changeset)}
   end
@@ -95,10 +95,10 @@ defmodule LiveSecretWeb.PageLive do
 
   # Submit form data for secret creation
   def handle_event("create", %{"presecret" => attrs}, socket) do
-    %{assigns: %{tenant: tenant}} = socket
+    %{private: %{tenant: tenant}} = socket
     secret = %Secret{id: id, creator_key: creator_key} = LiveSecret.insert!(tenant, attrs)
 
-    case assign_secret_or_redirect(socket, id) do
+    case sync_secret_or_redirect(socket, id) do
       {:ok, socket} ->
         {:noreply,
          socket
@@ -125,7 +125,7 @@ defmodule LiveSecretWeb.PageLive do
   end
 
   def handle_event("go_async", _params, socket = %{assigns: %{live_action: :admin}}) do
-    %{assigns: %{tenant: tenant, secret: secret, users: users}} = socket
+    %{private: %{tenant: tenant}, assigns: %{secret: secret, users: users}} = socket
     LiveSecret.go_async!(tenant, secret.id)
 
     # unlock all users currently online
@@ -137,7 +137,7 @@ defmodule LiveSecretWeb.PageLive do
   end
 
   def handle_event("go_live", _params, socket = %{assigns: %{live_action: :admin}}) do
-    %{assigns: %{tenant: tenant, secret: secret}} = socket
+    %{private: %{tenant: tenant}, assigns: %{secret: secret}} = socket
     LiveSecret.go_live!(tenant, secret.id)
 
     # Cannot lock a user if they're already unlocked, so no broadcast here
@@ -190,7 +190,7 @@ defmodule LiveSecretWeb.PageLive do
         _url,
         socket = %{assigns: %{live_action: :admin}}
       ) do
-    case assign_secret_or_redirect(socket, id) do
+    case sync_secret_or_redirect(socket, id) do
       {:ok, socket} ->
         %{assigns: %{secret: secret}} = socket
 
@@ -247,37 +247,6 @@ defmodule LiveSecretWeb.PageLive do
 
       _ ->
         {:noreply, socket}
-    end
-  end
-
-  def handle_info({ref, :ready}, socket) when is_reference(ref) do
-    %{assigns: %{tenant: tenant, futures: futures}} = socket
-
-    {new_assigns, new_futures} = Repo.assign_ready(futures, [ref], prefix: tenant, watch?: true)
-
-    case Keyword.fetch(new_assigns, :secret) do
-      {:ok, nil} ->
-        {:noreply,
-         socket
-         |> assign(:secret, %Secret{})
-         |> put_flash(:info, "The secret has expired. You've been redirected to the home page.")
-         |> push_navigate(to: ~p"/")}
-
-      {:ok, secret} ->
-        # workaround for [ecto_foundationdb/#37](https://github.com/ecto-foundationdb/ecto_foundationdb/issues/37)
-        secret = FoundationDB.usetenant(secret, tenant)
-        new_assigns = Keyword.put(new_assigns, :secret, secret)
-
-        {:noreply,
-         socket
-         |> assign(new_assigns)
-         |> assign(:futures, new_futures)}
-
-      _ ->
-        {:noreply,
-         socket
-         |> assign(new_assigns)
-         |> assign(:futures, new_futures)}
     end
   end
 
@@ -375,27 +344,51 @@ defmodule LiveSecretWeb.PageLive do
     |> handle_joins(LiveSecretWeb.Presence.list(topic))
   end
 
-  def assign_secret_or_redirect(socket, id) do
-    %{assigns: assigns = %{tenant: tenant}} = socket
+  def sync_secret_or_redirect(socket = %{assigns: %{secret: %Secret{id: id}}}, id)
+      when not is_nil(id) do
+    {:ok, socket}
+  end
 
-    case LiveSecret.watch_secret(tenant, :secret, id) do
-      {:ok, {secret, watch}} ->
-        futures = Map.get(assigns, :futures, [])
-        new_assigns = [secret: secret, futures: [watch | futures]]
+  def sync_secret_or_redirect(socket, id) do
+    redirect = fn socket, level, msg ->
+      socket
+      |> assign(:secret, %Secret{})
+      |> put_flash(level, msg)
+      |> push_navigate(to: ~p"/")
+    end
 
-        {:ok, assign(socket, new_assigns)}
+    missing_redirect = fn socket ->
+      redirect.(
+        socket,
+        :error,
+        "That secret doesn't exist. You've been redirected to the home page."
+      )
+    end
 
-      error ->
-        Logger.info("#{id} not found: #{inspect(error)}")
+    expired_redirect = fn socket ->
+      redirect.(
+        socket,
+        :info,
+        "That secret has expired. You've been redirected to the home page."
+      )
+    end
 
-        {error,
-         socket
-         |> put_flash(
-           :error,
-           "That secret doesn't exist. You've been redirected to the home page."
-         )
-         |> assign(:secret, %Secret{})
-         |> push_navigate(to: ~p"/")}
+    post_hook = fn
+      socket = %{assigns: %{secret: nil}} ->
+        expired_redirect.(socket)
+
+      socket ->
+        socket
+    end
+
+    socket = LiveSecret.sync_secret(socket, :secret, id, post_hook: post_hook)
+
+    case socket do
+      socket = %{assigns: %{secret: nil}} ->
+        {{:error, :not_found}, missing_redirect.(socket)}
+
+      socket ->
+        {:ok, socket}
     end
   end
 end
