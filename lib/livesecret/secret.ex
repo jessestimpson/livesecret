@@ -16,6 +16,7 @@ defmodule LiveSecret.Secret do
     field :creator_key, :string, redact: true
     field :expires_at, :naive_datetime
     field :label, :string
+    field :initiator, :string, default: "author"
 
     timestamps()
   end
@@ -49,10 +50,11 @@ defmodule LiveSecret.Secret do
       :iv,
       :live?,
       :label,
+      :initiator,
       :burned_at,
       :expires_at
     ])
-    |> Ecto.Changeset.validate_required([:creator_key, :live?, :expires_at])
+    |> Ecto.Changeset.validate_required([:creator_key, :live?, :initiator, :expires_at])
     |> validate_content_size()
     |> validate_iv_size()
   end

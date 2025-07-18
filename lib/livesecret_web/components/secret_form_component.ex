@@ -38,6 +38,7 @@ defmodule LiveSecretWeb.SecretFormComponent do
         {hidden_input(f, :content, id: "ciphertext")}
         {hidden_input(f, :iv, id: "iv")}
         {hidden_input(f, :burn_key, id: "burnkey")}
+        {hidden_input(f, :initiator, id: "initiator")}
         <!-- Spacer element to match the height of the toolbar -->
         <.spacer />
       </div>
@@ -91,30 +92,29 @@ defmodule LiveSecretWeb.SecretFormComponent do
 
         <ul
           id={"#{@field}-popover"}
-          class="hidden absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-white py-3 text-base shadow ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+          class="hidden absolute right-0 z-10 mt-1 max-h-56 w-auto overflow-auto rounded-lg bg-white py-3 text-base shadow ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
           tabindex="-1"
           role="listbox"
           aria-labelledby={"listbox-label-#{@field}"}
           aria-activedescendant="listbox-option-0"
           phx-click-away={JS.hide(to: "##{@field}-popover")}
         >
-          <%= for item <- @list do %>
-            <li
-              class="bg-white relative cursor-default select-none py-2 px-3 hover:bg-gray-100"
-              role="option"
-              phx-click={
-                JS.hide(to: "##{@field}-popover")
-                |> JS.dispatch("live-secret:select-choice",
-                  to: "##{@field}",
-                  detail: %{"value" => item}
-                )
-              }
-            >
-              <div class="flex items-center">
-                <span class="block truncate font-medium"><.choice_text v={item} /></span>
-              </div>
-            </li>
-          <% end %>
+          <li
+            :for={item <- @list}
+            class="bg-white relative cursor-default select-none py-2 px-3 hover:bg-gray-100"
+            role="option"
+            phx-click={
+              JS.hide(to: "##{@field}-popover")
+              |> JS.dispatch("live-secret:select-choice",
+                to: "##{@field}",
+                detail: %{"value" => item}
+              )
+            }
+          >
+            <div class="flex items-center">
+              <span class="block truncate font-medium"><.choice_text v={item} /></span>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
@@ -209,13 +209,66 @@ defmodule LiveSecretWeb.SecretFormComponent do
 
   def create_button(assigns) do
     ~H"""
-    <div class="flex-shrink-0">
+    <div class="isolate inline-flex -space-x-px rounded-md shadow-xs">
       <button
         type="submit"
-        class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        value={:encrypt}
+        class={["relative inline-flex items-center",
+        "rounded-l-md px-4 py-2",
+        "ring-1 ring-gray-300",
+        "border border-transparent",
+        "bg-indigo-600 text-sm font-semibold text-white shadow-sm",
+        "hover:bg-indigo-700",
+        "focus:bg-indigo-500"]}
       >
-        Encrypt
+        <.choice_text v={:encrypt} />
       </button>
+      <button
+        type="button"
+        class={["relative inline-flex items-center",
+        "rounded-r-md px-2 py-2",
+        "ring-1 ring-gray-300",
+        "border border-transparent",
+        "bg-indigo-600 text-sm font-semibold text-white shadow-sm",
+        "hover:bg-indigo-700"]}
+        phx-click={JS.toggle(to: "#create-popover")}
+      >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="h-4 w-4 size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+      </button>
+      <ul
+        id={"create-popover"}
+        class={["hidden absolute right-10 z-10 mt-1 max-h-56 w-auto",
+        "overflow-auto rounded-lg bg-white py-3",
+        "text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"]}
+        tabindex="-1"
+        role="listbox"
+        aria-labelledby={"listbox-label-create"}
+        aria-activedescendant="listbox-option-0"
+        phx-click-away={JS.hide(to: "#create-popover")}
+      >
+        <li
+          :for={item <- [:encrypt, :request]}
+          class="bg-white relative cursor-default select-none"
+          role="option"
+          phx-click={
+            JS.hide(to: "#create-popover")
+          }
+        >
+          <button type="submit" name={item} value={item} class={["flex items-center w-full py-2 px-3",
+          "hover:ring-1 hover:ring-gray-300",
+          "hover:bg-indigo-600 hover:text-white focus:text-white focus:bg-indigo-500"]}>
+            <span class="block truncate font-medium"><.choice_text v={item} /></span>
+          </button>
+        </li>
+      </ul>
     </div>
     """
   end
@@ -235,6 +288,10 @@ defmodule LiveSecretWeb.SecretFormComponent do
         Live
       <% :async -> %>
         Async
+      <% :encrypt -> %>
+        Encrypt
+      <% :request -> %>
+        Request
       <% _ -> %>
         error
     <% end %>

@@ -13,6 +13,7 @@ defmodule LiveSecret.Presecret do
     field :mode, Ecto.Enum, values: @modes, default: :live
     field :duration, :string, default: "1h"
     field :label, :string
+    field :initiator, :string, default: "author"
   end
 
   def new() do
@@ -30,7 +31,8 @@ defmodule LiveSecret.Presecret do
           "iv" => iv,
           "duration" => duration,
           "mode" => mode,
-          "label" => label
+          "label" => label,
+          "initiator" => initiator
         }
       ) do
     now = NaiveDateTime.utc_now()
@@ -42,6 +44,7 @@ defmodule LiveSecret.Presecret do
       burn_key: burn_key,
       live?: mode == "live",
       label: label,
+      initiator: initiator,
       expires_at: NaiveDateTime.add(now, duration_to_seconds(duration))
     }
   end
@@ -57,8 +60,8 @@ defmodule LiveSecret.Presecret do
 
   def changeset(presecret, params) do
     presecret
-    |> Ecto.Changeset.cast(params, [:burn_key, :content, :iv, :duration, :mode])
-    |> Ecto.Changeset.validate_required([:burn_key, :content, :iv, :duration, :mode])
+    |> Ecto.Changeset.cast(params, [:burn_key, :content, :iv, :duration, :mode, :initiator])
+    |> Ecto.Changeset.validate_required([:burn_key, :content, :iv, :duration, :mode, :initiator])
     |> Ecto.Changeset.validate_inclusion(:duration, @durations)
   end
 end

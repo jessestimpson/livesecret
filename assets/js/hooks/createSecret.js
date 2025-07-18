@@ -82,6 +82,15 @@ const CreateSecret = {
         var ciphertextEl = document.getElementById("ciphertext");
         ciphertextEl.value = ciphertextVal;
 
+        // "encrypt" or "request"
+        var submitValue = event.submitter.value;
+        var initiatorEl = document.getElementById("initiator");
+        if (submitValue == "encrypt") {
+          initiatorEl.value = "author";
+        } else if (submitValue == "request") {
+          initiatorEl.value = "recipient";
+        }
+
         //console.log("Submitting form...");
 
         // Enable everything that we disabled so that the phoenix submit works

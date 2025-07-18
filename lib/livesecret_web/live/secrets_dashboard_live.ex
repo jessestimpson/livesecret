@@ -29,6 +29,7 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
       <:col field={:burned_at} />
       <:col field={:expires_at} />
       <:col field={:live?} />
+      <:col field={:initiator} />
       <:col field={:inserted_at} />
     </.table>
     """
