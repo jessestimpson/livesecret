@@ -4,10 +4,10 @@ defmodule EctoFoundationDB.Sync do
   alias EctoFoundationDB.Indexer.SchemaMetadata
 
   @doc """
-  Equivalent to `sync_many!/5` with a single record.
+  Equivalent to `many!/5` with a single record.
   """
-  def sync_one!(state, name, repo, schema, label, id, opts \\ []) do
-    sync_many!(state, name, repo, [{schema, label, id}], opts)
+  def one!(state, name, repo, schema, label, id, opts \\ []) do
+    many!(state, name, repo, [{schema, label, id}], opts)
   end
 
   @doc """
@@ -47,7 +47,7 @@ defmodule EctoFoundationDB.Sync do
   - We add or append to the `:futures` list.
 
   """
-  def sync_many!(state, name, repo, id_assigns, opts \\ []) do
+  def many!(state, name, repo, id_assigns, opts \\ []) do
     %{private: private} = state
     %{tenant: tenant} = private
 
@@ -87,10 +87,10 @@ defmodule EctoFoundationDB.Sync do
   end
 
   @doc """
-  Equivalent to `sync_all!/5` with a single schema.
+  Equivalent to `all!/5` with a single schema.
   """
-  def sync_all!(state, name, repo, schema, label, opts) do
-    sync_all!(state, name, repo, [{schema, label}], opts)
+  def all!(state, name, repo, schema, label, opts) do
+    all!(state, name, repo, [{schema, label}], opts)
   end
 
   @doc """
@@ -138,7 +138,7 @@ defmodule EctoFoundationDB.Sync do
   - We add or append to the `:futures` list.
 
   """
-  def sync_all!(state, name, repo, schema_assigns, opts) do
+  def all!(state, name, repo, schema_assigns, opts) do
     %{private: private} = state
     %{tenant: tenant} = private
 
@@ -196,7 +196,7 @@ defmodule EctoFoundationDB.Sync do
   process handle_info `:ready` messages from EctoFDB.
 
   This hook is designed to be used with LiveView's `attach_hook`. If you're using
-  one of the `sync_*` function in this module, the hook is attached automatically. You
+  one of the functions in this module, the hook is attached automatically. You
   do not need to call this function.
 
   @todo: Batch ready messages? We could consume all available {ref, ready} from the mailbox and do many at once, but

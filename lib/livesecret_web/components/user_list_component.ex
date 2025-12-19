@@ -28,7 +28,7 @@ defmodule LiveSecretWeb.UserListComponent do
                   </div>
                   <div class="min-w-0 flex-1 px-4">
                     <div>
-                      <.user_role self={@self} active_user={active_user} />
+                      <.user_role self={@self} active_user={active_user} initiator={@initiator} />
 
                       <p class="mt-2 flex items-center text-sm text-gray-500">
                         <!-- Heroicon name: mini/identification -->
@@ -106,9 +106,9 @@ defmodule LiveSecretWeb.UserListComponent do
     <p class="truncate text-sm font-medium text-indigo-600">
       <%= case {@active_user.live_action, ActiveUser.connected?(@active_user)} do %>
         <% {_, true} -> %>
-          {ComponentUtil.render_live_action(@active_user.live_action, nil)}
+          {ComponentUtil.render_user_role(@active_user.live_action, @initiator)}
         <% {_, false} -> %>
-          Former {ComponentUtil.render_live_action(@active_user.live_action, nil)}
+          Former {ComponentUtil.render_user_role(@active_user.live_action, @initiator)}
       <% end %>
       <%= if @self == @active_user.id do %>
         (me)

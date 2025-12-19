@@ -15,15 +15,11 @@ defmodule LiveSecret.Do do
   end
 
   def sync_secret(state, label, id, opts) do
-    Sync.sync_one!(state, :sync_secret, Repo, Secret, label, id, opts)
+    Sync.one!(state, :sync_secret, Repo, Secret, label, id, opts)
   end
 
   def sync_secrets(state, label, query) do
-    Sync.sync_all!(state, :sync_secrets, Repo, [{Secret, label, query}], [])
-  end
-
-  def sync_hook(info, state, opts) do
-    Sync.handle_ready(Repo, info, state, opts)
+    Sync.all!(state, :sync_secrets, Repo, [{Secret, label, query}], [])
   end
 
   def delete_secrets_expiring_before(tenant, now) do

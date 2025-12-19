@@ -86,6 +86,9 @@ window.addEventListener("live-secret:clipcopy-instructions", (event) => {
   }
 
   var oobUrlEl = document.getElementById("oob-url");
+
+  var initiator = document.getElementById("secret-initiator-input").value;
+
   var instructions =
     `Hi, I'd like to share an encrypted message with you via LiveSecret.
 1. Open this link in your browser:
@@ -100,6 +103,10 @@ window.addEventListener("live-secret:clipcopy-instructions", (event) => {
     passphrase +
     `
 \`\`\``;
+
+  if (initiator == "recipient") {
+    instructions = "something else";
+  }
 
   if ("clipboard" in navigator) {
     navigator.clipboard.writeText(instructions);

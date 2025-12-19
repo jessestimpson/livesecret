@@ -17,6 +17,7 @@
           live_action={@live_action}
           burned_at={@secret.burned_at}
           live?={@secret.live?}
+          initiator={@secret.initiator}
         />
 
         <PageComponents.decrypt_modal
@@ -53,8 +54,9 @@
               enabled={is_nil(@secret.burned_at)}
             />
 
-            <PageComponents.admin_instructions
+            <PageComponents.admin_guidance
               :if={not is_nil(user)}
+              initiator={@secret.initiator}
               burned_at={@secret.burned_at}
               live?={@secret.live?}
             />
@@ -68,6 +70,7 @@
               live_action={@live_action}
               users={@users}
               burned_at={@secret.burned_at}
+              initiator={@secret.initiator}
             />
 
             <PageComponents.section_header :if={is_nil(@secret.burned_at)}>
@@ -80,7 +83,7 @@
             />
           <% :receiver -> %>
             <% user = if is_nil(@current_user), do: nil, else: @users[@current_user.id] %>
-            <PageComponents.receiver_instructions
+            <PageComponents.receiver_guidance
               :if={not is_nil(user)}
               user={user}
               burned_at={@secret.burned_at}
@@ -95,6 +98,7 @@
               live_action={@live_action}
               users={@users}
               burned_at={@secret.burned_at}
+              initiator={@secret.initiator}
             />
 
             <PageComponents.section_header>

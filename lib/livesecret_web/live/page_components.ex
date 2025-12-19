@@ -2,115 +2,132 @@ defmodule LiveSecretWeb.PageComponents do
   use Phoenix.Component
   use PhoenixHTMLHelpers
   alias Phoenix.LiveView.JS
+  import LiveSecretWeb.CoreComponents
+  alias LiveSecretWeb.ComponentUtil
 
   attr :user, :any
   attr :burned_at, :any
 
-  def receiver_instructions(assigns) do
+  def receiver_guidance(assigns) do
     ~H"""
-    <%= case {not is_nil(@burned_at), @user.state} do %>
-      <% {false, :locked} -> %>
-        <.instructions type={:wait_for_unlock} />
-      <% {false, :unlocked} -> %>
-        <.instructions type={:do_decrypt} />
-      <% {true, _} -> %>
-        <.instructions type={:done} />
-      <% _ -> %>
-    <% end %>
+    <.receiver_wait_for_unlock_guidance :if={is_nil(@burned_at) and @user.state == :locked} />
+    <.receiver_decrypt_guidance :if={is_nil(@burned_at) and @user.state == :unlocked} />
+    <.done_guidance :if={not is_nil(@burned_at) and @user.state == :done} />
     """
   end
 
   attr :burned_at, :any
   attr :live?, :boolean
+  attr :initiator, :string
 
-  def admin_instructions(assigns) do
+  def admin_guidance(assigns) do
     ~H"""
-    <%= case {not is_nil(@burned_at), @live?} do %>
-      <% {false, true} -> %>
-        <.instructions type={:do_unlock} />
-      <% {false, false} -> %>
-        <.instructions type={:do_nothing} />
-      <% {true, _} -> %>
-        <.instructions type={:done} />
-      <% _ -> %>
-    <% end %>
+    <.admin_unlock_guidance :if={is_nil(@burned_at) and @live?} initiator={@initiator} />
+    <.admin_do_nothing_guidance :if={is_nil(@burned_at) and not @live?} initiator={@initiator} />
+    <.done_guidance :if={not is_nil(@burned_at)} />
     """
   end
 
-  attr :type, :atom, required: true
+  attr :initiator, :string
 
-  def instructions(assigns) do
-    # <%= case {not is_nil(@burned_at), @user.state} do %>
-    #  <% {false, :locked} -> %>
-    # <% {true, _} -> %>
+  def admin_unlock_guidance(assigns) do
+    %{initiator: initiator} = assigns
+
+    assigns =
+      assign(assigns, admin_unlock_target: ComponentUtil.render_user_role(:receiver, initiator))
+
     ~H"""
-    <div class="pt-8 px-8 pb-2 w-full flex justify-center items-center align-center text-gray-700">
-      <.instructions_card :if={@type == :wait_for_unlock} color={:yellow}>
-        <:icon>
-          <div role="status" class="pl-2">
-            <svg
-              aria-hidden="true"
-              class="mr-2 w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-gray-800"
-              viewBox="0 0 100 101"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                fill="currentColor"
-              />
-              <path
-                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                fill="currentFill"
-              />
-            </svg>
-            <span class="sr-only">Loading...</span>
-          </div>
-        </:icon>
-        <:title>Please wait</:title>
-        <:description>The <strong>Admin</strong> must unlock your page</:description>
-      </.instructions_card>
-      <.instructions_card
-        :if={@type == :do_decrypt}
-        color={:yellow}
-        id="decrypt-instructions"
-        class="hidden"
-      >
-        <:icon>👉</:icon>
-        <:title>Ready</:title>
-        <:description>
-          <button
-            type="button"
-            id="show-btn"
-            class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
-            phx-click={JS.show(to: "#decrypt-modal") |> JS.hide(to: "#decrypt-instructions")}
+    <.guidance_card color={:yellow}>
+      <:icon>🤝</:icon>
+      <:title>Live Mode</:title>
+      <:description>
+        When the intended <strong>{@admin_unlock_target}</strong>
+        comes online, press
+        <LiveSecretWeb.UserListComponent.badge enabled={false} icon={:lock} text="Locked" class="" />
+      </:description>
+    </.guidance_card>
+    """
+  end
+
+  attr :initiator, :string
+
+  def admin_do_nothing_guidance(assigns) do
+    %{initiator: initiator} = assigns
+
+    assigns =
+      assign(assigns, admin_unlock_target: ComponentUtil.render_user_role(:receiver, initiator))
+
+    ~H"""
+    <.guidance_card color={:yellow}>
+      <:icon>🙌</:icon>
+      <:title>Async Mode</:title>
+      <:description>
+        When any potential <strong>{@admin_unlock_target}</strong> comes online, they will be prompted for the passphrase
+      </:description>
+    </.guidance_card>
+    """
+  end
+
+  def done_guidance(assigns) do
+    ~H"""
+    <.guidance_card color={:blue}>
+      <:icon>👋</:icon>
+      <:title>Goodbye</:title>
+      <:description>We're all done here. Please close this window.</:description>
+    </.guidance_card>
+    """
+  end
+
+  def receiver_decrypt_guidance(assigns) do
+    ~H"""
+    <.guidance_card
+      color={:yellow}
+      id="decrypt-guidance"
+      class="hidden"
+    >
+      <:icon>👉</:icon>
+      <:title>Ready</:title>
+      <:description>
+        <button
+          type="button"
+          id="show-btn"
+          class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
+          phx-click={JS.show(to: "#decrypt-modal") |> JS.hide(to: "#decrypt-guidance")}
+        >
+          Receive secret
+        </button>
+      </:description>
+    </.guidance_card>
+    """
+  end
+
+  def receiver_wait_for_unlock_guidance(assigns) do
+    ~H"""
+    <.guidance_card color={:yellow}>
+      <:icon>
+        <div role="status" class="pl-2">
+          <svg
+            aria-hidden="true"
+            class="mr-2 w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-gray-800"
+            viewBox="0 0 100 101"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            Receive secret
-          </button>
-        </:description>
-      </.instructions_card>
-      <.instructions_card :if={@type == :done} color={:blue}>
-        <:icon>👋</:icon>
-        <:title>Goodbye</:title>
-        <:description>We're all done here. Please close this window.</:description>
-      </.instructions_card>
-      <.instructions_card :if={@type == :do_unlock} color={:yellow}>
-        <:icon>🤝</:icon>
-        <:title>Live Mode</:title>
-        <:description>
-          When the intended <strong>Recipient</strong>
-          comes online, press
-          <LiveSecretWeb.UserListComponent.badge enabled={false} icon={:lock} text="Locked" class="" />
-        </:description>
-      </.instructions_card>
-      <.instructions_card :if={@type == :do_nothing} color={:yellow}>
-        <:icon>🙌</:icon>
-        <:title>Async Mode</:title>
-        <:description>
-          When any <strong>Recipient</strong> comes online, they will be prompted for the passphrase
-        </:description>
-      </.instructions_card>
-    </div>
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="currentColor"
+            />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentFill"
+            />
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+      </:icon>
+      <:title>Please wait</:title>
+      <:description>The <strong>Admin</strong> must unlock your page</:description>
+    </.guidance_card>
     """
   end
 
@@ -122,41 +139,43 @@ defmodule LiveSecretWeb.PageComponents do
   slot :status
   slot :description
 
-  def instructions_card(assigns) do
+  def guidance_card(assigns) do
     ~H"""
-    <div
-      id={@id}
-      class={[
-        "rounded-md p-4",
-        @class,
-        case @color do
-          :blue -> "bg-blue-50"
-          :yellow -> "bg-yellow-50"
-        end
-      ]}
-    >
-      <div class="flex">
-        <div class="flex-shrink-0">{render_slot(@icon)}</div>
-        <div class="ml-3">
-          <div class="flex">
-            <h3 class={[
-              "text-base font-medium",
+    <div class="pt-8 px-8 pb-2 w-full flex justify-center items-center align-center text-gray-700">
+      <div
+        id={@id}
+        class={[
+          "rounded-md p-4",
+          @class,
+          case @color do
+            :blue -> "bg-blue-50"
+            :yellow -> "bg-yellow-50"
+          end
+        ]}
+      >
+        <div class="flex">
+          <div class="flex-shrink-0">{render_slot(@icon)}</div>
+          <div class="ml-3">
+            <div class="flex">
+              <h3 class={[
+                "text-base font-medium",
+                case @color do
+                  :blue -> "text-blue-800"
+                  :yellow -> "text-yellow-800"
+                end
+              ]}>
+                {render_slot(@title)}
+              </h3>
+            </div>
+            <div class={[
+              "mt-2 text-sm",
               case @color do
-                :blue -> "text-blue-800"
-                :yellow -> "text-yellow-800"
+                :blue -> "text-blue-700"
+                :yellow -> "text-yellow-700"
               end
             ]}>
-              {render_slot(@title)}
-            </h3>
-          </div>
-          <div class={[
-            "mt-2 text-sm",
-            case @color do
-              :blue -> "text-blue-700"
-              :yellow -> "text-yellow-700"
-            end
-          ]}>
-            <p>{render_slot(@description)}</p>
+              <p>{render_slot(@description)}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -189,6 +208,10 @@ defmodule LiveSecretWeb.PageComponents do
               phx-submit="do_update"
               autocomplete="off"
             >
+
+            <!-- used to make instructions -->
+            <.input id="secret-initiator-input" type="hidden" field={f[:initiator]} />
+
             <input
               phx-feedback-for="label"
               type="text"
@@ -265,7 +288,7 @@ defmodule LiveSecretWeb.PageComponents do
         <% else %>
           <.action_item
             title="Switch to Live Mode"
-            description="In Live mode, the Admin must remain on this page to unlock the intended recipient when they connect."
+            description="In Live mode, the Admin must remain on this page to unlock the intended user when they connect."
             action_enabled={is_nil(@burned_at)}
             action_text="Go Live"
             action_icon={:locked}
@@ -432,6 +455,28 @@ defmodule LiveSecretWeb.PageComponents do
   end
 
   def decrypt_modal(assigns) do
+    %{secret: secret} = assigns
+
+    assigns =
+      case secret.initiator do
+        "author" ->
+          assign(assigns,
+            welcome_message: "Paste the passphrase into this box and press Decrypt.",
+            decrypt_success_message: "Success!",
+            leave_message: "When you leave this window, the content is gone forever.",
+            readonly: %{readonly: true}
+          )
+
+        "recipient" ->
+          assign(assigns,
+            welcome_message: "Paste the passphrase into this box and press Decrypt.",
+            decrypt_success_message: "One more step!",
+            leave_message:
+              "If you trust the person that sent this request, enter the requested information and press OK.",
+            readonly: %{}
+          )
+      end
+
     ~H"""
     <div
       id="decrypt-modal"
@@ -487,7 +532,7 @@ defmodule LiveSecretWeb.PageComponents do
                   </h3>
                   <div class="mt-2">
                     <p class="text-sm text-gray-500">
-                      Paste the passphrase into this box and press 'Decrypt'. The secret content will be shown if the passphrase is correct.
+                      {@welcome_message}
                     </p>
                   </div>
                   <div class="pt-2" phx-update="ignore" id="passphrase-div-for-ignore">
@@ -503,11 +548,11 @@ defmodule LiveSecretWeb.PageComponents do
                 </div>
                 <div id="successmessage" class="mt-3 text-center sm:mt-5 hidden" phx-update="ignore">
                   <h3 class="text-lg font-medium leading-6 text-gray-900">
-                    Success!
+                    {@decrypt_success_message}
                   </h3>
                   <div class="mt-2">
                     <p class="text-sm text-gray-500">
-                      When you leave this window, the content is gone forever.
+                    {@leave_message}
                     </p>
                   </div>
                 </div>
@@ -547,7 +592,7 @@ defmodule LiveSecretWeb.PageComponents do
                 <div id="cleartext-container" class="hidden text-center">
                   <textarea
                     id="cleartext"
-                    readonly
+                    {@readonly}
                     class="block w-full resize-none rounded-md border-yellow-400 bg-gray-100 placeholder-gray-500 ring-0 font-mono"
                   />
                   <div class="p-4 w-full flex justify-center items-center align-center">
@@ -581,7 +626,7 @@ defmodule LiveSecretWeb.PageComponents do
                   type="button"
                   id="close-btn"
                   class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
-                  phx-click={JS.hide(to: "#decrypt-modal") |> JS.show(to: "#decrypt-instructions")}
+                  phx-click={JS.hide(to: "#decrypt-modal") |> JS.show(to: "#decrypt-guidance")}
                 >
                   Close
                 </button>

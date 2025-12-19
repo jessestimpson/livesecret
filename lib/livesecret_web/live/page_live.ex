@@ -94,7 +94,8 @@ defmodule LiveSecretWeb.PageLive do
   end
 
   # Submit form data for secret creation
-  def handle_event("create", %{"presecret" => attrs}, socket) do
+  def handle_event("create", x = %{"presecret" => attrs}, socket) do
+    IO.inspect(x)
     %{private: %{tenant: tenant}} = socket
     secret = %Secret{id: id, creator_key: creator_key} = LiveSecret.insert!(tenant, attrs)
 

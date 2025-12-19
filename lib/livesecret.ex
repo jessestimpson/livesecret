@@ -18,7 +18,6 @@ defmodule LiveSecret do
   defdelegate burn!(secret), to: Do
   defdelegate sync_secret(state, label, id, opts), to: Do
   defdelegate sync_secrets(state, label, query), to: Do
-  defdelegate sync_hook(info, state, opts), to: Do
 
   defdelegate go_live!(tenant, id), to: Do
   defdelegate go_async!(tenant, id), to: Do

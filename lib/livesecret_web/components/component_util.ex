@@ -1,17 +1,10 @@
 defmodule LiveSecretWeb.ComponentUtil do
-  def render_live_action(:admin, nil) do
-    "Admin"
-  end
+  def render_user_role(:admin, "author"), do: "Admin"
+  def render_user_role(:receiver, "author"), do: "Recipient"
+  def render_user_role(:admin, "recipient"), do: "Admin Recipient"
+  def render_user_role(:receiver, "recipient"), do: "Author"
 
-  def render_live_action(:admin, true) do
-    "Admin (Live)"
-  end
-
-  def render_live_action(:admin, false) do
-    "Admin (Async)"
-  end
-
-  def render_live_action(:receiver, _) do
-    "Recipient"
+  def render_admin_unlock_target() do
+    "TODO"
   end
 end
