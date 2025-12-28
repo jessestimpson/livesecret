@@ -1,7 +1,6 @@
 defmodule LiveSecret.Do do
   alias LiveSecret.{Repo, Secret, Presecret}
   alias Ecto.Adapters.FoundationDB
-  alias EctoFoundationDB.Sync
   alias EctoFoundationDB.Tenant
 
   import Ecto.Query
@@ -12,18 +11,6 @@ defmodule LiveSecret.Do do
 
   def open_tenant(tenant_id) do
     Tenant.open!(Repo, tenant_id)
-  end
-
-  def sync_secret(state, label, id, opts) do
-    Sync.sync_one!(state, :sync_secret, Repo, Secret, label, id, opts)
-  end
-
-  def sync_secrets(state, label, query) do
-    Sync.sync_all!(state, :sync_secrets, Repo, [{Secret, label, query}], [])
-  end
-
-  def sync_hook(info, state, opts) do
-    Sync.handle_ready(Repo, info, state, opts)
   end
 
   def delete_secrets_expiring_before(tenant, now) do

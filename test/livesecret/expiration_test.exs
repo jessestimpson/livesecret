@@ -8,7 +8,7 @@ defmodule LiveSecret.ExpirationTest do
     0 = Do.count_secrets(tenant)
     Do.insert!(tenant, @valid_presecret_attrs)
     1 = Do.count_secrets(tenant)
-    Expiration.expire_all(tenant)
+    Expiration.purge(tenant)
     0 = Do.count_secrets(tenant)
   end
 

@@ -16,9 +16,6 @@ defmodule LiveSecret do
   defdelegate update!(changeset), to: Do
   defdelegate validate_presecret(tenant, presecret_attrs), to: Do
   defdelegate burn!(secret), to: Do
-  defdelegate sync_secret(state, label, id, opts), to: Do
-  defdelegate sync_secrets(state, label, query), to: Do
-  defdelegate sync_hook(info, state, opts), to: Do
 
   defdelegate go_live!(tenant, id), to: Do
   defdelegate go_async!(tenant, id), to: Do

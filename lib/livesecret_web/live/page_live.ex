@@ -1,7 +1,10 @@
 defmodule LiveSecretWeb.PageLive do
   use LiveSecretWeb, :live_view
 
+  alias EctoFoundationDB.Sync
+
   alias LiveSecret.Presecret
+  alias LiveSecret.Repo
   alias LiveSecret.Secret
 
   alias LiveSecretWeb.ActiveUser
@@ -350,45 +353,48 @@ defmodule LiveSecretWeb.PageLive do
   end
 
   def sync_secret_or_redirect(socket, id) do
-    redirect = fn socket, level, msg ->
+    socket =
       socket
-      |> assign(:secret, %Secret{})
-      |> put_flash(level, msg)
-      |> push_navigate(to: ~p"/")
-    end
-
-    missing_redirect = fn socket ->
-      redirect.(
-        socket,
-        :error,
-        "That secret doesn't exist. You've been redirected to the home page."
-      )
-    end
-
-    expired_redirect = fn socket ->
-      redirect.(
-        socket,
-        :info,
-        "That secret has expired. You've been redirected to the home page."
-      )
-    end
-
-    post_hook = fn
-      socket = %{assigns: %{secret: nil}} ->
-        expired_redirect.(socket)
-
-      socket ->
-        socket
-    end
-
-    socket = LiveSecret.sync_secret(socket, :secret, id, post_hook: post_hook)
+      |> Sync.attach_callback(Repo, :handle_assigns, &handle_assigns/2)
+      |> Sync.sync_one(Repo, :secret, Secret, id)
 
     case socket do
       socket = %{assigns: %{secret: nil}} ->
-        {{:error, :not_found}, missing_redirect.(socket)}
+        {{:error, :not_found}, missing_redirect(socket)}
 
       socket ->
         {:ok, socket}
     end
+  end
+
+  defp handle_assigns(socket = %{assigns: %{secret: nil}}, _old_assigns) do
+    {:halt, expired_redirect(socket)}
+  end
+
+  defp handle_assigns(socket, _) do
+    {:cont, socket}
+  end
+
+  defp expired_redirect(socket) do
+    flash_and_redirect(
+      socket,
+      :info,
+      "That secret has expired. You've been redirected to the home page."
+    )
+  end
+
+  defp missing_redirect(socket) do
+    flash_and_redirect(
+      socket,
+      :error,
+      "That secret doesn't exist. You've been redirected to the home page."
+    )
+  end
+
+  defp flash_and_redirect(socket, level, msg) do
+    socket
+    |> assign(:secret, %Secret{})
+    |> put_flash(level, msg)
+    |> push_navigate(to: ~p"/")
   end
 end

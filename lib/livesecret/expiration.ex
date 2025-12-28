@@ -27,7 +27,11 @@ defmodule LiveSecret.Expiration do
   def open_and_purge(tenant_id) do
     tenant_id
     |> Do.open_tenant()
-    |> expire_before(~N[2999-12-31 23:59:59.000])
+    |> purge()
+  end
+
+  def purge(tenant) do
+    expire_before(tenant, ~N[2999-12-31 23:59:59.000])
   end
 
   def expire(tenant) do

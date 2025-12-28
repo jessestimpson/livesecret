@@ -189,15 +189,15 @@ defmodule LiveSecretWeb.PageComponents do
               phx-submit="do_update"
               autocomplete="off"
             >
-            <input
-              phx-feedback-for="label"
-              type="text"
-              name={f[:label].name}
-              class="text-sm text-right font-medium text-gray-900 border-0 rounded-md focus:ring-blue-500 focus:placeholder:text-transparent"
-              id="secret-label-input"
-              value={Phoenix.HTML.Form.normalize_value("text", f[:label].value)}
-              placeholder="Label"
-            />
+              <input
+                phx-feedback-for="label"
+                type="text"
+                name={f[:label].name}
+                class="text-sm text-right font-medium text-gray-900 border-0 rounded-md focus:ring-blue-500 focus:placeholder:text-transparent"
+                id="secret-label-input"
+                value={Phoenix.HTML.Form.normalize_value("text", f[:label].value)}
+                placeholder="Label"
+              />
             </.form>
             <button
               type="button"
@@ -465,7 +465,14 @@ defmodule LiveSecretWeb.PageComponents do
             To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         -->
           <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full md:w-2/3 sm:p-6">
-            <.form :let={f} for={@changeset} phx-change="burn" phx-submit="burn" phx-hook="DecryptSecret" autocomplete="off">
+            <.form
+              :let={f}
+              for={@changeset}
+              phx-change="burn"
+              phx-submit="burn"
+              phx-hook="DecryptSecret"
+              autocomplete="off"
+            >
               <div>
                 <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
                   <!-- Heroicon name: outline/lock-open -->

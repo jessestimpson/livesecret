@@ -26,7 +26,8 @@ defmodule LiveSecret.TenantCase do
         "content" => :base64.encode("encrypted-content-here"),
         "iv" => :base64.encode(<<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1>>),
         "duration" => "1h",
-        "mode" => "live"
+        "mode" => "live",
+        "label" => nil
       }
 
       @preexpired_presecret_attrs %{
@@ -34,7 +35,8 @@ defmodule LiveSecret.TenantCase do
         "content" => :base64.encode("encrypted-content-here"),
         "iv" => :base64.encode(<<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1>>),
         "duration" => "-1h",
-        "mode" => "live"
+        "mode" => "live",
+        "label" => nil
       }
 
       @invalid_presecret_attrs %{
@@ -42,7 +44,8 @@ defmodule LiveSecret.TenantCase do
         "content" => nil,
         "iv" => nil,
         "duration" => nil,
-        "mode" => nil
+        "mode" => nil,
+        "label" => nil
       }
     end
   end

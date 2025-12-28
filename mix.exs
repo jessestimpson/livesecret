@@ -20,7 +20,7 @@ defmodule LiveSecret.MixProject do
   def application do
     [
       mod: {LiveSecret.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :observer]
     ]
   end
 
@@ -34,14 +34,14 @@ defmodule LiveSecret.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7.0"},
-      {:ecto, "~> 3.10"},
+      {:ecto, "~> 3.13"},
       {:phoenix_ecto, "~> 4.6"},
-      {:ecto_foundationdb, github: "foundationdb-beam/ecto_foundationdb"},
+      {:ecto_foundationdb, "~> 0.6"},
       {:ex_fdbmonitor, "~> 0.1", only: [:dev, :prod]},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_view, "~> 2.0"},
-      {:phoenix_live_view, "~> 1.0"},
+      {:phoenix_live_view, "~> 1.1"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8"},

@@ -3,6 +3,8 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
   alias LiveSecretWeb.Presence
   alias LiveSecret.Secret
+  alias EctoFoundationDB.Sync
+  alias LiveSecret.Repo
   import Ecto.Query
 
   @impl true
@@ -17,7 +19,7 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
     {:ok,
      socket
      |> put_private(:tenant, Presence.tenant_from_socket(socket))
-     |> LiveSecret.sync_secrets(:secrets, query)}
+     |> Sync.sync_all(Repo, :secrets, query)}
   end
 
   @impl true
@@ -60,9 +62,9 @@ defmodule LiveSecretWeb.SecretsDashboardPage do
             <table class="table table-hover mt-0 dash-table">
               <thead>
                 <tr>
-                <th :for={column <- @col}>
-                {column[:header] || column[:field]}
-                </th>
+                  <th :for={column <- @col}>
+                    {column[:header] || column[:field]}
+                  </th>
                 </tr>
               </thead>
               <tbody>
