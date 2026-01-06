@@ -468,6 +468,7 @@ defmodule LiveSecretWeb.PageComponents do
             <.form
               :let={f}
               for={@changeset}
+              id="decrypt-form"
               phx-change="burn"
               phx-submit="burn"
               phx-hook="DecryptSecret"
