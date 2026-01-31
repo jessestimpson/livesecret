@@ -1,10 +1,5 @@
 import Encryption from "../encryption";
 
-// Maximum content size constants
-// Server limit is 4096 bytes for encrypted content
-// Overhead: 37 bytes (burnkey UUID + newline) + 16 bytes (AES-GCM auth tag) = 53 bytes
-const MAX_CLEARTEXT_BYTES = 4043;
-
 // Calculate the UTF-8 byte length of a string
 function getByteLength(str) {
   return new TextEncoder().encode(str).length;
@@ -12,6 +7,9 @@ function getByteLength(str) {
 
 const CreateSecret = {
   mounted() {
+    // Read max cleartext size from data attribute (configured server-side)
+    this.maxCleartextBytes = parseInt(this.el.dataset.maxCleartextSize, 10);
+
     // Set up content length validation
     this.setupContentValidation();
 
@@ -139,17 +137,19 @@ const CreateSecret = {
 
     var self = this;
 
+    var maxBytes = self.maxCleartextBytes;
+
     var validateContent = function () {
       var byteLength = getByteLength(cleartextEl.value);
-      var isOverLimit = byteLength > MAX_CLEARTEXT_BYTES;
+      var isOverLimit = byteLength > maxBytes;
 
       if (isOverLimit) {
-        var overBy = byteLength - MAX_CLEARTEXT_BYTES;
+        var overBy = byteLength - maxBytes;
         messageEl.textContent =
           "Your secret is " +
           overBy +
           " bytes over the maximum size of " +
-          MAX_CLEARTEXT_BYTES +
+          maxBytes +
           " bytes. Please shorten your content.";
         warningEl.classList.remove("hidden");
         buttonEl.disabled = true;

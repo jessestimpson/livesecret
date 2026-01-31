@@ -36,8 +36,8 @@
             <SecretFormComponent.create
               changeset={@changeset}
               modes={Presecret.supported_modes()}
-              ,
               durations={Presecret.supported_durations()}
+              max_cleartext_size={Secret.max_cleartext_size()}
             />
             <PageComponents.section_header>
               <:title>Help</:title>

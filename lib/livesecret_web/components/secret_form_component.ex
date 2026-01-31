@@ -15,6 +15,7 @@ defmodule LiveSecretWeb.SecretFormComponent do
       phx-submit="create"
       phx-hook="CreateSecret"
       autocomplete="off"
+      data-max-cleartext-size={@max_cleartext_size}
     >
       <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
         <div class="flex">
@@ -36,7 +37,7 @@ defmodule LiveSecretWeb.SecretFormComponent do
           />
           <div id="content-length-warning" class="hidden px-3 py-2 text-sm text-red-600 bg-red-50 border-t border-red-200">
             <span class="font-medium">Content too long:</span>
-            <span id="content-length-message">Your secret exceeds the maximum size of 4043 bytes.</span>
+            <span id="content-length-message">Your secret exceeds the maximum allowed size.</span>
           </div>
         </div>
         {hidden_input(f, :content, id: "ciphertext")}
