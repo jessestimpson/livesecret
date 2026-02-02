@@ -22,27 +22,49 @@ defmodule LiveSecret.Presecret do
     }
   end
 
-  # TODO - this can be done purely with changesets, I'm sure of it
-  def make_secret_attrs(
-        _attrs = %{
-          "burn_key" => burn_key,
-          "content" => content,
-          "iv" => iv,
-          "duration" => duration,
-          "mode" => mode,
-          "label" => label
-        }
-      ) do
-    now = NaiveDateTime.utc_now()
+  def make_secret_attrs(attrs) do
+    %Presecret{}
+    |> Ecto.Changeset.cast(attrs, [:burn_key, :content, :iv, :duration, :mode, :label])
+    |> decode_base64(:content)
+    |> decode_base64(:iv)
+    |> put_creator_key()
+    |> convert_mode_to_live()
+    |> compute_expires_at()
+    |> changeset_to_secret_attrs()
+  end
 
+  defp decode_base64(changeset, field) do
+    case Ecto.Changeset.get_change(changeset, field) do
+      nil -> changeset
+      value -> Ecto.Changeset.put_change(changeset, field, :base64.decode(value))
+    end
+  end
+
+  defp put_creator_key(changeset) do
+    Ecto.Changeset.put_change(changeset, :creator_key, OperationalKey.generate())
+  end
+
+  defp convert_mode_to_live(changeset) do
+    mode = Ecto.Changeset.get_change(changeset, :mode)
+    Ecto.Changeset.put_change(changeset, :live?, mode == "live")
+  end
+
+  defp compute_expires_at(changeset) do
+    duration = Ecto.Changeset.get_change(changeset, :duration)
+    now = NaiveDateTime.utc_now()
+    expires_at = NaiveDateTime.add(now, duration_to_seconds(duration))
+    Ecto.Changeset.put_change(changeset, :expires_at, expires_at)
+  end
+
+  defp changeset_to_secret_attrs(changeset) do
     %{
-      content: :base64.decode(content),
-      iv: :base64.decode(iv),
-      creator_key: OperationalKey.generate(),
-      burn_key: burn_key,
-      live?: mode == "live",
-      label: label,
-      expires_at: NaiveDateTime.add(now, duration_to_seconds(duration))
+      content: Ecto.Changeset.get_change(changeset, :content),
+      iv: Ecto.Changeset.get_change(changeset, :iv),
+      creator_key: Ecto.Changeset.get_change(changeset, :creator_key),
+      burn_key: Ecto.Changeset.get_change(changeset, :burn_key),
+      live?: Ecto.Changeset.get_change(changeset, :live?),
+      label: Ecto.Changeset.get_change(changeset, :label),
+      expires_at: Ecto.Changeset.get_change(changeset, :expires_at)
     }
   end
 
