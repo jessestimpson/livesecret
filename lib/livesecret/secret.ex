@@ -5,6 +5,11 @@ defmodule LiveSecret.Secret do
 
   @maxcontentsize 4096
   @ivsize 12
+  # Encryption overhead: 37 bytes (burnkey UUID + newline) + 16 bytes (AES-GCM auth tag)
+  @encryption_overhead 53
+
+  def max_content_size, do: @maxcontentsize
+  def max_cleartext_size, do: @maxcontentsize - @encryption_overhead
 
   @primary_key {:id, :string, autogenerate: false}
   schema "secrets" do
