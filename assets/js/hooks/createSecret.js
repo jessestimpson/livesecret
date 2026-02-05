@@ -1,16 +1,14 @@
 import Encryption from "../encryption";
 
-// Calculate the UTF-8 byte length of a string
 function getByteLength(str) {
   return new TextEncoder().encode(str).length;
 }
 
 const CreateSecret = {
   mounted() {
-    // Read max cleartext size from data attribute (configured server-side)
+    // Max cleartext size is configured server-side in this data attribute
     this.maxCleartextBytes = parseInt(this.el.dataset.maxCleartextSize, 10);
 
-    // Set up content length validation
     this.setupContentValidation();
 
     this.el.addEventListener("submit", async (event) => {
@@ -21,7 +19,6 @@ const CreateSecret = {
         // prevent the default browser behavior (submitting the form over HTTP)
         event.preventDefault();
 
-        // Check if content is too long
         if (!this.isContentValid()) {
           return;
         }
