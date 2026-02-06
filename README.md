@@ -1,5 +1,7 @@
 # LiveSecret
 
+[![CI](https://github.com/JesseStimpson/livesecret/actions/workflows/ci.yml/badge.svg)](https://github.com/JesseStimpson/livesecret/actions/workflows/ci.yml)
+
 [**LiveSecret**](https://livesecret.link) is a [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html)
 web application built for secure sharing of passwords or other secrets.
 The secret content is End-to-End Encrypted using your browser's built-in cryptography
