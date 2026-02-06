@@ -27,19 +27,19 @@ defmodule LiveSecret.Presecret do
       %Presecret{}
       |> Ecto.Changeset.cast(attrs, [:burn_key, :content, :iv, :duration, :mode, :label])
 
-    content = changeset |> Ecto.Changeset.get_change(:content) |> decode_base64()
-    iv = changeset |> Ecto.Changeset.get_change(:iv) |> decode_base64()
-    burn_key = Ecto.Changeset.get_change(changeset, :burn_key)
-    mode = Ecto.Changeset.get_change(changeset, :mode)
-    duration = Ecto.Changeset.get_change(changeset, :duration)
-    label = Ecto.Changeset.get_change(changeset, :label)
+    content = changeset |> Ecto.Changeset.get_field(:content) |> decode_base64()
+    iv = changeset |> Ecto.Changeset.get_field(:iv) |> decode_base64()
+    burn_key = Ecto.Changeset.get_field(changeset, :burn_key)
+    mode = Ecto.Changeset.get_field(changeset, :mode)
+    duration = Ecto.Changeset.get_field(changeset, :duration)
+    label = Ecto.Changeset.get_field(changeset, :label)
 
     %{
       content: content,
       iv: iv,
       creator_key: OperationalKey.generate(),
       burn_key: burn_key,
-      live?: mode == "live",
+      live?: mode == :live,
       label: label,
       expires_at: NaiveDateTime.add(NaiveDateTime.utc_now(), duration_to_seconds(duration))
     }
