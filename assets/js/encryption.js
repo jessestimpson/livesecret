@@ -75,7 +75,7 @@ const GeneratePassphrase = async function (wordlist) {
   var rawkey = await exportKey(encryptionkey);
 
   if (wordlist.length != 7776) { // eff_large_wordlist.txt|json
-    userkey = arrayBufferToBase64(rawkey);
+    var userkey = arrayBufferToBase64(rawkey);
     return userkey;
   } else {
     // Assume the wordlist provided is from eff_large_wordlist
