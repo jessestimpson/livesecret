@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    name: Test Elixir ${{ matrix.elixir }}, OTP ${{ matrix.otp }}, FDB ${{ matrix.fdb }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest"]
+        elixir: ["1.17"]
+        otp: ["27"]
+        fdb: ["7.3.69"]
+    env:
+      MIX_ENV: test
+      FDB_VERSION: ${{ matrix.fdb }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+      - uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ matrix.os }}-otp_${{ matrix.otp }}-elixir_${{ matrix.elixir }}-mix_${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ matrix.os }}-otp_${{ matrix.otp }}-elixir_${{ matrix.elixir }}-mix_
+      - name: Install FoundationDB
+        run: |
+          wget --quiet https://github.com/apple/foundationdb/releases/download/${FDB_VERSION}/foundationdb-clients_${FDB_VERSION}-1_amd64.deb
+          wget --quiet https://github.com/apple/foundationdb/releases/download/${FDB_VERSION}/foundationdb-server_${FDB_VERSION}-1_amd64.deb
+          sudo dpkg -i foundationdb-clients_${FDB_VERSION}-1_amd64.deb
+          sudo dpkg -i foundationdb-server_${FDB_VERSION}-1_amd64.deb
+      - run: mix deps.get --only test
+      - run: mix deps.compile
+      - run: mix compile --warnings-as-errors
+      - run: mix test

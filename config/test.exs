@@ -18,3 +18,11 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Configure bun for JS tests
+config :bun,
+  version: "1.2.4",
+  js_tests: [
+    args: ~w(test --preload ./test/js/setup.js test/js),
+    cd: Path.expand("../", __DIR__)
+  ]

@@ -7,7 +7,7 @@ function getTimeString(dateLocal) {
   });
 }
 
-function getAgoString(dateLocal, formatFor) {
+export function getAgoString(dateLocal, formatFor) {
   const nowLocal = new Date();
 
   const diff = nowLocal.getTime() - dateLocal.getTime();

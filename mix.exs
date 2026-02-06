@@ -53,7 +53,8 @@ defmodule LiveSecret.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:puid, "~> 2.0"},
       {:remote_ip, "~> 1.0"},
-      {:phoenix_html_helpers, "~> 1.0"}
+      {:phoenix_html_helpers, "~> 1.0"},
+      {:bun, "~> 1.6", runtime: false, only: :test}
     ]
   end
 
@@ -69,7 +70,9 @@ defmodule LiveSecret.MixProject do
         "tailwind livesecret --minify",
         "esbuild livesecret --minify",
         "phx.digest"
-      ]
+      ],
+      test: ["test", "test.js"],
+      "test.js": ["bun.install --if-missing", "bun js_tests"]
     ]
   end
 end

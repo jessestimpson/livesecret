@@ -29,6 +29,33 @@ defmodule LiveSecret.DoTest do
     %Secret{iv: nil, content: nil} = Do.burn!(secret)
   end
 
+  test "burn sets burned_at and sensitive data is gone on re-read", context do
+    tenant = context[:tenant]
+    secret = Do.insert!(tenant, @valid_presecret_attrs)
+    assert is_nil(secret.burned_at)
+    refute is_nil(secret.content)
+    refute is_nil(secret.iv)
+
+    burned = Do.burn!(secret)
+    refute is_nil(burned.burned_at)
+
+    # Re-fetch from DB to confirm persistence
+    refetched = Do.get_secret!(tenant, secret.id)
+    refute is_nil(refetched.burned_at)
+    assert is_nil(refetched.content)
+    assert is_nil(refetched.iv)
+  end
+
+  test "insert! generates unique creator_key per secret", context do
+    tenant = context[:tenant]
+    s1 = Do.insert!(tenant, @valid_presecret_attrs)
+    s2 = Do.insert!(tenant, @valid_presecret_attrs)
+
+    assert is_binary(s1.creator_key)
+    assert is_binary(s2.creator_key)
+    assert s1.creator_key != s2.creator_key
+  end
+
   test "change live state", context do
     tenant = context[:tenant]
     secret = Do.insert!(tenant, @valid_presecret_attrs)
