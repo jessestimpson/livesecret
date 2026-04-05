@@ -145,7 +145,7 @@ defmodule LiveSecretWeb.Presence do
 
   Returns true if successful
   """
-  def on_revealed(id, for_user) do
+  def on_revealed(id, %ActiveUser{} = for_user) do
     LiveSecretWeb.Presence.update(self(), Secret.topic(id), for_user.id, %ActiveUser{
       for_user
       | state: :revealed
@@ -161,7 +161,7 @@ defmodule LiveSecretWeb.Presence do
 
   Returns true if successful
   """
-  def on_decrypt_failure(id, for_user, count) do
+  def on_decrypt_failure(id, %ActiveUser{} = for_user, count) do
     LiveSecretWeb.Presence.update(self(), Secret.topic(id), for_user.id, %ActiveUser{
       for_user
       | decrypt_failure_count: count

@@ -4,8 +4,8 @@ defmodule LiveSecret.MixProject do
   def project do
     [
       app: :livesecret,
-      version: "0.4.0",
-      elixir: "~> 1.16",
+      version: "0.5.0",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       elixirc_options: [warnings_as_errors: true],
       start_permanent: Mix.env() == :prod,
@@ -33,11 +33,11 @@ defmodule LiveSecret.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.0"},
+      {:phoenix, "~> 1.7"},
       {:ecto, "~> 3.13"},
       {:phoenix_ecto, "~> 4.6"},
-      {:ecto_foundationdb, "~> 0.6"},
-      {:ex_fdbmonitor, "~> 0.1", only: [:dev, :prod]},
+      {:ecto_foundationdb, "~> 0.7"},
+      {:ex_fdbmonitor, "~> 0.2", only: [:dev, :prod]},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_view, "~> 2.0"},
@@ -48,13 +48,13 @@ defmodule LiveSecret.MixProject do
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.18"},
+      {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:puid, "~> 2.0"},
       {:remote_ip, "~> 1.0"},
       {:phoenix_html_helpers, "~> 1.0"},
-      {:bun, "~> 1.6", runtime: false, only: :test}
+      {:bun, "~> 2.0", runtime: false, only: :test}
     ]
   end
 

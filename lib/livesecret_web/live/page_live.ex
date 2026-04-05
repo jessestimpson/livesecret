@@ -272,7 +272,7 @@ defmodule LiveSecretWeb.PageLive do
         nil ->
           socket
 
-        active_user ->
+        %ActiveUser{} = active_user ->
           active_user = %ActiveUser{active_user | left_at: left_at}
 
           assign(socket, :users, Map.put(users, user_id, active_user))

@@ -10,17 +10,14 @@ config :ex_fdbmonitor,
 
 config :ex_fdbmonitor,
   bootstrap: [
-    cluster: [
-      coordinator_addr: "127.0.0.1"
-    ],
     conf: [
       data_dir: ".livesecret/dev/fdb/data",
       log_dir: ".livesecret/dev/fdb/log",
+      storage_engine: "ssd-redwood-1",
       fdbservers: [
         [port: 5000]
       ]
-    ],
-    fdbcli: ~w[configure new single ssd-redwood-1]
+    ]
   ]
 
 # For development, we disable any cache and enable

@@ -17,7 +17,10 @@ defmodule LiveSecretWeb.SecretFormComponent do
       autocomplete="off"
       data-max-cleartext-size={@max_cleartext_size}
     >
-      <div id="content-length-warning" class="hidden px-3 py-2 text-sm text-red-600 bg-red-50 border rounded-lg border-red-200">
+      <div
+        id="content-length-warning"
+        class="hidden px-3 py-2 text-sm text-red-600 bg-red-50 border rounded-lg border-red-200"
+      >
         <span class="font-medium">Content too long:</span>
         <span id="content-length-message">Your secret exceeds the maximum allowed size.</span>
       </div>

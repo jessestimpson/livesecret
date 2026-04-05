@@ -41,7 +41,6 @@ if config_env() == :prod and "embed" == System.get_env("LIVESECRET_DATABASE", "e
     etc_dir: Path.join(database_path, "etc"),
     run_dir: Path.join(database_path, "run")
 
-  node_idx = String.to_integer(System.get_env("LIVESECRET_NODE_IDX") || "0")
   node_count = String.to_integer(System.get_env("LIVESECRET_NODE_COUNT") || "1")
   interface = System.get_env("LIVESECRET_COORDINATOR_IF") || "lo"
 
@@ -59,26 +58,16 @@ if config_env() == :prod and "embed" == System.get_env("LIVESECRET_DATABASE", "e
 
   config :ex_fdbmonitor,
     bootstrap: [
-      cluster:
-        if(node_idx > 0,
-          do: :autojoin,
-          else: [
-            coordinator_addr: addr_fn.(interface)
-          ]
-        ),
+      cluster: [coordinator_addr: addr_fn.(interface)],
       conf: [
         data_dir: Path.join(database_path, "data"),
         log_dir: Path.join(database_path, "log"),
+        storage_engine: System.get_env("FDB_STORAGE_ENGINE") || "ssd-redwood-1",
         memory: System.get_env("FDBSERVER_MEMORY") || nil,
         cache_memory: System.get_env("FDBSERVER_CACHE_MEMORY") || nil,
-        fdbservers: [[port: 4500]]
-      ],
-      fdbcli:
-        if(node_idx == 0,
-          do: ~w[configure new single #{System.get_env("FDB_STORAGE_ENGINE") || "ssd-redwood-1"}]
-        ),
-      fdbcli: if(node_idx == 2, do: ~w[configure double]),
-      fdbcli: if(node_idx == node_count - 1, do: ~w[coordinators auto])
+        fdbservers: [[port: 4500]],
+        redundancy_mode: if(node_count >= 3, do: "double")
+      ]
     ]
 end
 

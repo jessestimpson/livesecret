@@ -12,10 +12,10 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.14.0-erlang-25.0.3-debian-bullseye-20210902-slim
 #
-ARG ELIXIR_VERSION=1.17.3
-ARG OTP_VERSION=27.1.3
-ARG UBUNTU_VERSION=jammy-20250126
-ARG FDB_VERSION=7.3.58
+ARG ELIXIR_VERSION=1.19.4
+ARG OTP_VERSION=28.3
+ARG UBUNTU_VERSION=jammy-20260217
+ARG FDB_VERSION=7.3.69
 ARG ARCH=aarch64
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-ubuntu-${UBUNTU_VERSION}"
