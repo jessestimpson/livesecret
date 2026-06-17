@@ -11,8 +11,6 @@ defmodule LiveSecretWeb.PageLive do
   alias LiveSecretWeb.PageComponents
   alias LiveSecretWeb.SecretFormComponent
 
-  require Logger
-
   @impl true
   def mount(%{"id" => id, "key" => key}, %{}, socket = %{assigns: %{live_action: :admin}}) do
     case sync_secret_or_redirect(socket, id) do
